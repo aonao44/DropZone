@@ -2,9 +2,9 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, User, Mail, Calendar, Clock, ArrowLeft, History, Upload } from "lucide-react";
+import { CheckCircle, User, Mail, Calendar, Clock, ArrowLeft, History, Upload, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -14,44 +14,36 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from "@/components/ui/separator";
 import { FileUploader } from "./file-uploader";
 import { DropZoneLogo } from "./dropzone-logo";
-import { SubmissionLogs } from "./submission-logs";
 import { useUploadThing } from "@/lib/uploadthing";
 import { generateRandomSlug } from "@/lib/utils";
-import { SubmissionFile } from "@/lib/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-export function ClientSubmissionForm({
-  projectSlug = "",
-  showHistoryButton = true,
-}: {
-  projectSlug?: string;
+interface ClientAdditionalSubmissionFormProps {
+  projectSlug: string;
+  originalSlug: string;
+  originalName?: string;
+  originalEmail?: string;
   showHistoryButton?: boolean;
-}) {
+}
+
+export function ClientAdditionalSubmissionForm({
+  projectSlug,
+  originalSlug,
+  originalName,
+  originalEmail,
+  showHistoryButton = true,
+}: ClientAdditionalSubmissionFormProps) {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [figmaUrl, setFigmaUrl] = useState("");
   const [logoFiles, setLogoFiles] = useState<File[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(originalName || "");
+  const [email, setEmail] = useState(originalEmail || "");
   const [submissionTime, setSubmissionTime] = useState("");
   const [submissionDate, setSubmissionDate] = useState("");
-  const [viewingLogs, setViewingLogs] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const isDarkMode = true; // 常にダークモード
-
-  // slugを状態として保持
-  const [submissionSlug, setSubmissionSlug] = useState<string>("");
-
-  // コンポーネントのマウント時とprojectSlugの変更時にslugを設定
-  useEffect(() => {
-    // 追加提出の場合（projectSlugが指定されている場合）
-    if (projectSlug && projectSlug.trim() !== "") {
-      setSubmissionSlug(projectSlug);
-    }
-    // 新規提出の場合（projectSlugが指定されていない場合）
-    else {
-      setSubmissionSlug(generateRandomSlug());
-    }
-  }, [projectSlug]);
 
   // UploadThing hook for file uploads
   const { startUpload, isUploading: isUploadingFile } = useUploadThing("imageUploader", {
@@ -59,49 +51,68 @@ export function ClientSubmissionForm({
       console.log("Upload completed:", res);
 
       if (res && res.length > 0) {
-        // slgが空でないことを確認
-        const slug = submissionSlug || generateRandomSlug();
-
-        // Create submission record in Supabase
-        const response = await fetch("/api/submissions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            projectSlug: slug,
-            slug: slug,
-            submittedAt: new Date().toISOString(),
-            files: res.map((file: any) => ({
-              name: file.fileName || file.name,
-              url: file.ufsUrl || file.fileUrl || file.url, // v9互換性対応
-            })),
-            figmaLinks: figmaUrl ? [figmaUrl] : [],
-          }),
-        });
-
-        if (response.ok) {
-          // Redirect to view page
-          router.push(`/project/${slug}/view`);
-        } else {
-          console.error("Failed to create submission:", await response.text());
-          setIsUploading(false);
-        }
+        await handleCreateSubmission(res);
       } else {
         setIsUploading(false);
       }
     },
     onUploadError: (error) => {
       console.error("Upload error:", error);
+      setErrorMessage("ファイルのアップロードに失敗しました。もう一度お試しください。");
       setIsUploading(false);
     },
   });
 
+  // 提出レコードを作成する共通関数
+  const handleCreateSubmission = async (uploadedFiles?: any[]) => {
+    try {
+      // 提出データの準備
+      const submissionData = {
+        name,
+        email,
+        slug: originalSlug, // URLから受け取ったslugをそのまま使用
+        projectSlug: originalSlug, // project_slugとしても同じslugを使用
+        submittedAt: new Date().toISOString(),
+        files: uploadedFiles
+          ? uploadedFiles.map((file: any) => ({
+              name: file.fileName || file.name,
+              url: file.ufsUrl || file.fileUrl || file.url, // v9互換性対応
+            }))
+          : [],
+        figmaLinks: figmaUrl ? [figmaUrl] : [],
+      };
+
+      // Supabaseに保存
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // 正常に保存された場合は元のプロジェクトビューページにリダイレクト
+        router.push(`/project/${originalSlug}/view`);
+      } else {
+        // エラー処理
+        console.error("Failed to create submission:", data.error);
+        setErrorMessage(data.error || "提出の保存に失敗しました。もう一度お試しください。");
+        setIsUploading(false);
+      }
+    } catch (error) {
+      console.error("Error in submission creation:", error);
+      setErrorMessage("予期せぬエラーが発生しました。もう一度お試しください。");
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsUploading(true);
+    setErrorMessage(""); // エラーメッセージをリセット
 
     // Record submission time
     const now = new Date();
@@ -119,40 +130,16 @@ export function ClientSubmissionForm({
     setSubmissionTime(formattedTime);
 
     try {
-      // slugが空でないことを確認
-      const slug = submissionSlug || generateRandomSlug();
-
       // Upload files to UploadThing if they exist
       if (logoFiles.length > 0) {
         await startUpload(logoFiles);
       } else {
-        // If no files, just create a submission record
-        const response = await fetch("/api/submissions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            projectSlug: slug,
-            slug: slug,
-            submittedAt: new Date().toISOString(),
-            files: [],
-            figmaLinks: figmaUrl ? [figmaUrl] : [],
-          }),
-        });
-
-        if (response.ok) {
-          // Redirect to view page
-          router.push(`/project/${slug}/view`);
-        } else {
-          console.error("Failed to create submission:", await response.text());
-          setIsUploading(false);
-        }
+        // ファイルなしの場合は直接提出
+        await handleCreateSubmission();
       }
     } catch (error) {
       console.error("Error in form submission:", error);
+      setErrorMessage("フォーム送信中にエラーが発生しました。もう一度お試しください。");
       setIsUploading(false);
     }
   };
@@ -165,49 +152,13 @@ export function ClientSubmissionForm({
       "border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400",
     button: "bg-gradient-to-r from-indigo-500/90 to-purple-500/90 hover:from-indigo-400 hover:to-purple-400",
     separator: "bg-gray-600/50",
-    logCard: "bg-gray-700/60 border-gray-600/70",
     backButton: "border-indigo-400/70 text-indigo-300 hover:bg-indigo-800/30 hover:text-indigo-200",
-    logButton: "border-indigo-400/70 text-indigo-300 hover:bg-indigo-800/30 hover:text-indigo-200",
-    themeIcon: "text-indigo-300",
     text: "text-gray-200",
     mutedText: "text-gray-300",
+    gradientText: "bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 to-purple-300",
+    errorAlert: "border-red-500/30 bg-red-950/30 text-red-200",
+    originalHighlight: "font-medium text-indigo-300",
   };
-
-  if (viewingLogs) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md"
-      >
-        <Card className={themeClasses.card}>
-          <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between mb-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setViewingLogs(false)}
-                className={`${themeClasses.backButton} border-dashed`}
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" /> 戻る
-              </Button>
-            </div>
-            <div className="flex flex-col items-center space-y-3">
-              <DropZoneLogo isDark={true} />
-              <CardTitle className="text-2xl font-light tracking-tight">提出ログ一覧</CardTitle>
-            </div>
-            <CardDescription className="text-center">過去の素材提出履歴を確認できます</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SubmissionLogs isDark={true} />
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
 
   return (
     <AnimatePresence mode="wait">
@@ -222,27 +173,61 @@ export function ClientSubmissionForm({
           <Card className={themeClasses.card}>
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
             <CardHeader className="pb-2">
-              <div className="flex flex-col items-center space-y-3 mb-2">
-                <DropZoneLogo isDark={true} />
-                <CardTitle className="text-2xl font-light tracking-tight mt-2">素材提出フォーム</CardTitle>
-              </div>
-              <CardDescription className="text-center">
-                プロジェクトに必要な素材をアップロードしてください
-              </CardDescription>
-              {showHistoryButton && (
-                <div className="flex justify-center mt-2">
+              <div className="flex items-center justify-between mb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push(`/project/${originalSlug}/view`)}
+                  className={`${themeClasses.backButton} border-dashed`}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1" /> 戻る
+                </Button>
+
+                {showHistoryButton && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setViewingLogs(true)}
-                    className={`${themeClasses.logButton} border-dashed`}
+                    onClick={() => router.push(`/project/${originalSlug}/view`)}
+                    className={`${themeClasses.backButton} border-dashed`}
                   >
                     <History className="h-4 w-4 mr-1" /> 履歴を確認
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
+              <div className="flex flex-col items-center space-y-3 mb-2">
+                <DropZoneLogo isDark={true} />
+                <CardTitle className="text-2xl font-light tracking-tight mt-2">追加提出フォーム</CardTitle>
+              </div>
+              <CardDescription className="text-center space-y-2">
+                <span className={themeClasses.gradientText}>このプロジェクトへの追加提出です</span>
+                {(originalName || originalEmail) && (
+                  <p className="text-sm mt-1 text-gray-300">
+                    {originalName && (
+                      <>
+                        前回の提出者名: <span className={themeClasses.originalHighlight}>{originalName}</span>
+                        <br />
+                      </>
+                    )}
+                    {originalEmail && (
+                      <>
+                        前回のメールアドレス: <span className={themeClasses.originalHighlight}>{originalEmail}</span>
+                        <br />
+                      </>
+                    )}
+                    <span className="text-xs">※前回と同じメールアドレスを使用してください</span>
+                  </p>
+                )}
+              </CardDescription>
             </CardHeader>
             <CardContent>
+              {errorMessage && (
+                <Alert className={`mb-6 ${themeClasses.errorAlert}`}>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>エラーが発生しました</AlertTitle>
+                  <AlertDescription>{errorMessage}</AlertDescription>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 提出者情報セクション */}
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
@@ -338,7 +323,7 @@ export function ClientSubmissionForm({
                 <Button
                   type="submit"
                   className={`w-full ${themeClasses.button} text-white hover:text-white py-6`}
-                  disabled={isUploading || isUploadingFile || !name}
+                  disabled={isUploading || isUploadingFile || !name || !email}
                 >
                   {isUploading || isUploadingFile ? (
                     <span className="flex items-center justify-center gap-2">
@@ -346,7 +331,7 @@ export function ClientSubmissionForm({
                       アップロード中...
                     </span>
                   ) : (
-                    "送信する"
+                    "追加提出する"
                   )}
                 </Button>
               </form>
@@ -366,31 +351,29 @@ export function ClientSubmissionForm({
               <div className="bg-indigo-500/10 rounded-full p-4 mb-6">
                 <CheckCircle className="h-12 w-12 text-indigo-400" />
               </div>
-              <h2 className={`text-2xl font-medium mb-3 ${themeClasses.text}`}>提出完了</h2>
+              <h2 className={`text-2xl font-medium mb-3 ${themeClasses.text}`}>追加提出完了</h2>
               <p className={`text-center mb-6 ${themeClasses.mutedText}`}>
-                素材の提出を受け付けました。ありがとうございます！
+                素材の追加提出を受け付けました。ありがとうございます！
               </p>
 
               <div className="flex flex-col gap-2 w-full max-w-[300px]">
-                <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
+                <div className={`${themeClasses.section} p-3 rounded-lg`}>
                   <p className={`text-xs ${themeClasses.mutedText}`}>提出者</p>
                   <p className={`${themeClasses.text}`}>{name}</p>
                 </div>
-                {email && (
-                  <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
-                    <p className={`text-xs ${themeClasses.mutedText}`}>メールアドレス</p>
-                    <p className={`${themeClasses.text}`}>{email}</p>
-                  </div>
-                )}
+                <div className={`${themeClasses.section} p-3 rounded-lg`}>
+                  <p className={`text-xs ${themeClasses.mutedText}`}>メールアドレス</p>
+                  <p className={`${themeClasses.text}`}>{email}</p>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
+                  <div className={`${themeClasses.section} p-3 rounded-lg`}>
                     <p className={`text-xs ${themeClasses.mutedText} flex items-center gap-1`}>
                       <Calendar className="h-3 w-3" />
                       提出日
                     </p>
                     <p className={`${themeClasses.text}`}>{submissionDate}</p>
                   </div>
-                  <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
+                  <div className={`${themeClasses.section} p-3 rounded-lg`}>
                     <p className={`text-xs ${themeClasses.mutedText} flex items-center gap-1`}>
                       <Clock className="h-3 w-3" />
                       時間
@@ -399,6 +382,13 @@ export function ClientSubmissionForm({
                   </div>
                 </div>
               </div>
+
+              <Button
+                className={`mt-8 ${themeClasses.button} text-white`}
+                onClick={() => router.push(`/project/${originalSlug}/view`)}
+              >
+                提出一覧を確認する
+              </Button>
             </CardContent>
           </Card>
         </motion.div>

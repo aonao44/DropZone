@@ -1,9 +1,13 @@
+// submit/page.tsx
 import { ClientSubmissionForm } from "@/components/client-submission-form";
+import { generateRandomSlug } from "@/lib/utils";
 
-export default function Home() {
+export default function SubmitPage() {
+  const newSlug = generateRandomSlug();
+
   return (
-    <main className="min-h-screen flex items-center justify-center p-4 bg-gray-900 transition-colors duration-300">
-      <ClientSubmissionForm />
-    </main>
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
+      <ClientSubmissionForm projectSlug={newSlug} showHistoryButton={false} />
+    </div>
   );
 }
