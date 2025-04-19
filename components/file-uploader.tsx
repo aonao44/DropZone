@@ -2,9 +2,9 @@
 
 import type React from "react";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, File, X } from "lucide-react";
+import { Upload, File, X, AlertCircle } from "lucide-react";
 
 interface FileUploaderProps {
   id: string;
@@ -26,7 +26,15 @@ export function FileUploader({
   maxFiles = 10,
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Reset error when files change
+    if (files.length <= maxFiles) {
+      setFileError(null);
+    }
+  }, [files, maxFiles]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -43,10 +51,21 @@ export function FileUploader({
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files);
+      
+      // Check if adding these files would exceed the limit
       if (multiple) {
         const totalFiles = [...files, ...newFiles];
-        onFilesChange(totalFiles.slice(0, maxFiles));
+        if (totalFiles.length > maxFiles) {
+          setFileError(`最大${maxFiles}ファイルまでアップロード可能です`);
+          // Only add files up to the limit
+          const availableSlots = Math.max(0, maxFiles - files.length);
+          onFilesChange([...files, ...newFiles.slice(0, availableSlots)]);
+        } else {
+          setFileError(null);
+          onFilesChange(totalFiles);
+        }
       } else {
+        setFileError(null);
         onFilesChange([newFiles[0]]);
       }
     }
@@ -55,10 +74,21 @@ export function FileUploader({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
+      
+      // Check if adding these files would exceed the limit
       if (multiple) {
         const totalFiles = [...files, ...newFiles];
-        onFilesChange(totalFiles.slice(0, maxFiles));
+        if (totalFiles.length > maxFiles) {
+          setFileError(`最大${maxFiles}ファイルまでアップロード可能です`);
+          // Only add files up to the limit
+          const availableSlots = Math.max(0, maxFiles - files.length);
+          onFilesChange([...files, ...newFiles.slice(0, availableSlots)]);
+        } else {
+          setFileError(null);
+          onFilesChange(totalFiles);
+        }
       } else {
+        setFileError(null);
         onFilesChange([newFiles[0]]);
       }
     }
@@ -68,6 +98,7 @@ export function FileUploader({
     const updatedFiles = [...files];
     updatedFiles.splice(index, 1);
     onFilesChange(updatedFiles);
+    setFileError(null);
 
     if (updatedFiles.length === 0 && inputRef.current) {
       inputRef.current.value = "";
@@ -87,6 +118,8 @@ export function FileUploader({
         hoverGradient: "from-indigo-800/20 to-purple-800/20",
         text: "text-gray-200",
         mutedText: "text-gray-300",
+        errorText: "text-red-300",
+        errorBg: "bg-red-900/20 border-red-500/30",
       }
     : {
         dropzone: isDragging
@@ -99,10 +132,19 @@ export function FileUploader({
         hoverGradient: "from-blue-50/50 to-pink-50/50",
         text: "text-gray-700",
         mutedText: "text-gray-500",
+        errorText: "text-red-600",
+        errorBg: "bg-red-100 border-red-300",
       };
 
   return (
     <div className="w-full space-y-2">
+      {fileError && (
+        <div className={`flex items-center gap-2 p-2 rounded-lg border ${themeClasses.errorBg}`}>
+          <AlertCircle className={`h-4 w-4 ${themeClasses.errorText}`} />
+          <p className={`text-xs ${themeClasses.errorText}`}>{fileError}</p>
+        </div>
+      )}
+      
       {files.length < maxFiles && (
         <motion.div
           whileHover={{ y: -2 }}

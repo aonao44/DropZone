@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { CheckCircle, User, Mail, Calendar, Clock, ArrowLeft, History, Upload } from "lucide-react";
+import { CheckCircle, User, Mail, Calendar, Clock, ArrowLeft, History, Upload, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { SubmissionLogs } from "./submission-logs";
 import { useUploadThing } from "@/lib/uploadthing";
 import { generateRandomSlug } from "@/lib/utils";
 import { SubmissionFile } from "@/lib/types";
+import { createClient } from '@supabase/supabase-js';
 
 export function ClientSubmissionForm({
   projectSlug = "",
@@ -36,22 +37,74 @@ export function ClientSubmissionForm({
   const [submissionTime, setSubmissionTime] = useState("");
   const [submissionDate, setSubmissionDate] = useState("");
   const [viewingLogs, setViewingLogs] = useState(false);
+  const [existingFileCount, setExistingFileCount] = useState(0);
+  const [showFileLimitError, setShowFileLimitError] = useState(false);
   const isDarkMode = true; // 常にダークモード
 
   // slugを状態として保持
   const [submissionSlug, setSubmissionSlug] = useState<string>("");
+
+  // Initialize Supabase client (client-side)
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  );
 
   // コンポーネントのマウント時とprojectSlugの変更時にslugを設定
   useEffect(() => {
     // 追加提出の場合（projectSlugが指定されている場合）
     if (projectSlug && projectSlug.trim() !== "") {
       setSubmissionSlug(projectSlug);
+      
+      // Get existing file count for this project
+      async function fetchExistingFileCount() {
+        try {
+          const { data: submissions, error } = await supabase
+            .from('submissions')
+            .select('files')
+            .eq('project_slug', projectSlug);
+          
+          if (error) {
+            console.error('Error fetching submissions:', error);
+            return;
+          }
+          
+          // Count total files across all submissions
+          const totalFiles = submissions.reduce((count, submission) => {
+            return count + (Array.isArray(submission.files) ? submission.files.length : 0);
+          }, 0);
+          
+          setExistingFileCount(totalFiles);
+        } catch (err) {
+          console.error('Error counting existing files:', err);
+        }
+      }
+      
+      fetchExistingFileCount();
     }
     // 新規提出の場合（projectSlugが指定されていない場合）
     else {
       setSubmissionSlug(generateRandomSlug());
+      setExistingFileCount(0);
     }
-  }, [projectSlug]);
+  }, [projectSlug, supabase]);
+
+  // Update file selection handling
+  const handleFilesChange = (files: File[]) => {
+    const totalFileCount = existingFileCount + files.length;
+    
+    if (totalFileCount > 10) {
+      // Show error message
+      setShowFileLimitError(true);
+      
+      // Only keep enough files to reach the limit
+      const allowedNewFiles = Math.max(0, 10 - existingFileCount);
+      setLogoFiles(files.slice(0, allowedNewFiles));
+    } else {
+      setShowFileLimitError(false);
+      setLogoFiles(files);
+    }
+  };
 
   // UploadThing hook for file uploads
   const { startUpload, isUploading: isUploadingFile } = useUploadThing("imageUploader", {
@@ -171,6 +224,7 @@ export function ClientSubmissionForm({
     themeIcon: "text-indigo-300",
     text: "text-gray-200",
     mutedText: "text-gray-300",
+    alert: "bg-red-900/20 border border-red-400/30 text-red-200",
   };
 
   if (viewingLogs) {
@@ -243,6 +297,16 @@ export function ClientSubmissionForm({
               )}
             </CardHeader>
             <CardContent>
+              {showFileLimitError && (
+                <div className={`${themeClasses.alert} p-3 rounded-lg mb-4 flex items-center gap-2`}>
+                  <AlertCircle className="h-4 w-4" />
+                  <p className="text-sm">
+                    このプロジェクトでは最大10ファイルまでアップロード可能です。
+                    {existingFileCount > 0 && `（既存: ${existingFileCount}ファイル）`}
+                  </p>
+                </div>
+              )}
+              
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 提出者情報セクション */}
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
@@ -302,16 +366,21 @@ export function ClientSubmissionForm({
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
                   <h3 className={`text-sm font-medium ${themeClasses.text} flex items-center gap-1.5`}>
                     <Upload className="h-3.5 w-3.5" />
-                    ファイルアップロード <span className={`text-xs ${themeClasses.mutedText}`}>(最大10ファイル)</span>
+                    ファイルアップロード <span className={`text-xs ${themeClasses.mutedText}`}>(プロジェクト当たり最大10ファイル)</span>
                   </h3>
+                  {existingFileCount > 0 && (
+                    <p className={`text-xs ${themeClasses.mutedText}`}>
+                      既存ファイル数: {existingFileCount} / 10
+                    </p>
+                  )}
                   <FileUploader
                     id="logo-upload"
                     files={logoFiles}
-                    onFilesChange={setLogoFiles}
+                    onFilesChange={handleFilesChange}
                     accept="image/*"
                     isDark={true}
                     multiple={true}
-                    maxFiles={10}
+                    maxFiles={Math.max(0, 10 - existingFileCount)}
                   />
                 </div>
 
