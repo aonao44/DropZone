@@ -14,6 +14,7 @@ interface FileUploaderProps {
   isDark?: boolean;
   multiple?: boolean;
   maxFiles?: number;
+  existingFileCount?: number;
 }
 
 export function FileUploader({
@@ -24,6 +25,7 @@ export function FileUploader({
   isDark = false,
   multiple = true,
   maxFiles = 10,
+  existingFileCount = 0,
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -51,46 +53,30 @@ export function FileUploader({
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const newFiles = Array.from(e.dataTransfer.files);
-      
-      // Check if adding these files would exceed the limit
-      if (multiple) {
-        const totalFiles = [...files, ...newFiles];
-        if (totalFiles.length > maxFiles) {
-          setFileError(`最大${maxFiles}ファイルまでアップロード可能です`);
-          // Only add files up to the limit
-          const availableSlots = Math.max(0, maxFiles - files.length);
-          onFilesChange([...files, ...newFiles.slice(0, availableSlots)]);
-        } else {
-          setFileError(null);
-          onFilesChange(totalFiles);
-        }
-      } else {
-        setFileError(null);
-        onFilesChange([newFiles[0]]);
+      const totalCount = existingFileCount + files.length + newFiles.length;
+
+      if (totalCount > maxFiles) {
+        setFileError(`プロジェクト全体で最大${maxFiles}ファイルまでアップロード可能です`);
+        return; // ← ここで追加しない
       }
+
+      setFileError(null);
+      onFilesChange([...files, ...newFiles]);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      
-      // Check if adding these files would exceed the limit
-      if (multiple) {
-        const totalFiles = [...files, ...newFiles];
-        if (totalFiles.length > maxFiles) {
-          setFileError(`最大${maxFiles}ファイルまでアップロード可能です`);
-          // Only add files up to the limit
-          const availableSlots = Math.max(0, maxFiles - files.length);
-          onFilesChange([...files, ...newFiles.slice(0, availableSlots)]);
-        } else {
-          setFileError(null);
-          onFilesChange(totalFiles);
-        }
-      } else {
-        setFileError(null);
-        onFilesChange([newFiles[0]]);
+      const totalCount = existingFileCount + files.length + newFiles.length;
+
+      if (totalCount > maxFiles) {
+        setFileError(`プロジェクト全体で最大${maxFiles}ファイルまでアップロード可能です`);
+        return; // ← ここで追加しない
       }
+
+      setFileError(null);
+      onFilesChange([...files, ...newFiles]);
     }
   };
 
@@ -144,7 +130,7 @@ export function FileUploader({
           <p className={`text-xs ${themeClasses.errorText}`}>{fileError}</p>
         </div>
       )}
-      
+
       {files.length < maxFiles && (
         <motion.div
           whileHover={{ y: -2 }}

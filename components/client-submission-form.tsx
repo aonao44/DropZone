@@ -18,7 +18,9 @@ import { SubmissionLogs } from "./submission-logs";
 import { useUploadThing } from "@/lib/uploadthing";
 import { generateRandomSlug } from "@/lib/utils";
 import { SubmissionFile } from "@/lib/types";
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js"; // ←こっちを復活
+
+import { useUser } from "@clerk/nextjs"; // Clerkを使っている場合
 
 export function ClientSubmissionForm({
   projectSlug = "",
@@ -46,61 +48,58 @@ export function ClientSubmissionForm({
 
   // Initialize Supabase client (client-side)
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
   );
+
+  // 既存ファイル数を取得する関数を共通化
+  const fetchExistingFileCount = async (slug: string) => {
+    if (!slug || slug.trim() === "") return;
+
+    try {
+      const { data: submissions, error } = await supabase.from("submissions").select("files").eq("project_slug", slug);
+
+      if (error) {
+        console.error("Error fetching submissions:", error);
+        return;
+      }
+
+      // Count total files across all submissions
+      const totalFiles = submissions.reduce((count, submission) => {
+        return count + (Array.isArray(submission.files) ? submission.files.length : 0);
+      }, 0);
+
+      setExistingFileCount(totalFiles);
+    } catch (err) {
+      console.error("Error counting existing files:", err);
+    }
+  };
 
   // コンポーネントのマウント時とprojectSlugの変更時にslugを設定
   useEffect(() => {
     // 追加提出の場合（projectSlugが指定されている場合）
     if (projectSlug && projectSlug.trim() !== "") {
       setSubmissionSlug(projectSlug);
-      
-      // Get existing file count for this project
-      async function fetchExistingFileCount() {
-        try {
-          const { data: submissions, error } = await supabase
-            .from('submissions')
-            .select('files')
-            .eq('project_slug', projectSlug);
-          
-          if (error) {
-            console.error('Error fetching submissions:', error);
-            return;
-          }
-          
-          // Count total files across all submissions
-          const totalFiles = submissions.reduce((count, submission) => {
-            return count + (Array.isArray(submission.files) ? submission.files.length : 0);
-          }, 0);
-          
-          setExistingFileCount(totalFiles);
-        } catch (err) {
-          console.error('Error counting existing files:', err);
-        }
-      }
-      
-      fetchExistingFileCount();
+      // 既存ファイル数を取得
+      fetchExistingFileCount(projectSlug);
     }
     // 新規提出の場合（projectSlugが指定されていない場合）
     else {
       setSubmissionSlug(generateRandomSlug());
       setExistingFileCount(0);
     }
-  }, [projectSlug, supabase]);
+  }, [projectSlug]);
 
   // Update file selection handling
   const handleFilesChange = (files: File[]) => {
     const totalFileCount = existingFileCount + files.length;
-    
+
     if (totalFileCount > 10) {
-      // Show error message
+      // 上限を超える場合はエラーを表示するだけ
       setShowFileLimitError(true);
-      
-      // Only keep enough files to reach the limit
-      const allowedNewFiles = Math.max(0, 10 - existingFileCount);
-      setLogoFiles(files.slice(0, allowedNewFiles));
+      // setLogoFiles は呼び出さない
     } else {
+      // 上限内の場合はエラーを非表示にし、ファイルリストを更新
       setShowFileLimitError(false);
       setLogoFiles(files);
     }
@@ -136,6 +135,10 @@ export function ClientSubmissionForm({
         });
 
         if (response.ok) {
+          // 送信完了後、最新のファイル数を再取得
+          await fetchExistingFileCount(slug);
+          // ファイルリストをクリア
+          setLogoFiles([]);
           // Redirect to view page
           router.push(`/project/${slug}/view`);
         } else {
@@ -154,6 +157,13 @@ export function ClientSubmissionForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 送信前にファイル数チェック
+    if (existingFileCount + logoFiles.length > 10) {
+      alert("累計10ファイルを超えるため、送信できません。");
+      return; // ここで送信中止！
+    }
+
     setIsUploading(true);
 
     // Record submission time
@@ -197,6 +207,8 @@ export function ClientSubmissionForm({
         });
 
         if (response.ok) {
+          // 送信完了後、最新のファイル数を再取得
+          await fetchExistingFileCount(slug);
           // Redirect to view page
           router.push(`/project/${slug}/view`);
         } else {
@@ -306,7 +318,7 @@ export function ClientSubmissionForm({
                   </p>
                 </div>
               )}
-              
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* 提出者情報セクション */}
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
@@ -366,12 +378,11 @@ export function ClientSubmissionForm({
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
                   <h3 className={`text-sm font-medium ${themeClasses.text} flex items-center gap-1.5`}>
                     <Upload className="h-3.5 w-3.5" />
-                    ファイルアップロード <span className={`text-xs ${themeClasses.mutedText}`}>(プロジェクト当たり最大10ファイル)</span>
+                    ファイルアップロード{" "}
+                    <span className={`text-xs ${themeClasses.mutedText}`}>(プロジェクト当たり最大10ファイル)</span>
                   </h3>
                   {existingFileCount > 0 && (
-                    <p className={`text-xs ${themeClasses.mutedText}`}>
-                      既存ファイル数: {existingFileCount} / 10
-                    </p>
+                    <p className={`text-xs ${themeClasses.mutedText}`}>既存ファイル数: {existingFileCount} / 10</p>
                   )}
                   <FileUploader
                     id="logo-upload"
@@ -380,7 +391,8 @@ export function ClientSubmissionForm({
                     accept="image/*"
                     isDark={true}
                     multiple={true}
-                    maxFiles={Math.max(0, 10 - existingFileCount)}
+                    maxFiles={10} // ★常に10を渡す！
+                    existingFileCount={existingFileCount} // ★追加！累計制御のため
                   />
                 </div>
 

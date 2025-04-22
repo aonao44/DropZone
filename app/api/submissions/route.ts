@@ -3,6 +3,9 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { SubmissionFile } from "@/lib/types";
 
+// 1ユーザーあたりの累計最大ファイル数
+const MAX_FILES_PER_PROJECT = 10;
+
 export async function POST(request: Request) {
   try {
     const cookieStore = cookies();
@@ -24,11 +27,13 @@ export async function POST(request: Request) {
       body.files = [];
     }
 
+    const projectSlug = body.projectSlug || body.slug;
+
     // プロジェクトが既存かチェック
     const { data: existingProjects, error: fetchError } = await supabase
       .from("submissions")
       .select("name, email")
-      .eq("project_slug", body.projectSlug || body.slug)
+      .eq("project_slug", projectSlug)
       .order("submitted_at", { ascending: false })
       .limit(1);
 
@@ -60,6 +65,46 @@ export async function POST(request: Request) {
       }
     }
 
+    // 既存ファイル数の取得
+    const { data: existingSubmissions, error: filesCountError } = await supabase
+      .from("submissions")
+      .select("files")
+      .eq("project_slug", projectSlug);
+
+    if (filesCountError) {
+      console.error("Error fetching existing files:", filesCountError);
+      return new NextResponse(
+        JSON.stringify({
+          error: "既存のファイル情報取得中にエラーが発生しました",
+        }),
+        { status: 500 }
+      );
+    }
+
+    // プロジェクト全体の既存ファイル数を計算
+    const existingFileCount = existingSubmissions.reduce((count, submission) => {
+      return count + (Array.isArray(submission.files) ? submission.files.length : 0);
+    }, 0);
+
+    // 新規ファイル数
+    const newFileCount = Array.isArray(body.files) ? body.files.length : 0;
+
+    // 合計ファイル数が上限を超えているかチェック
+    if (existingFileCount + newFileCount > MAX_FILES_PER_PROJECT) {
+      return new NextResponse(
+        JSON.stringify({
+          error: `プロジェクト全体で最大${MAX_FILES_PER_PROJECT}ファイルまでです。現在${existingFileCount}ファイル登録済みのため、あと${
+            MAX_FILES_PER_PROJECT - existingFileCount
+          }ファイルまでアップロード可能です。`,
+          code: "file_limit_exceeded",
+          existingFileCount,
+          maxFiles: MAX_FILES_PER_PROJECT,
+          remainingFiles: MAX_FILES_PER_PROJECT - existingFileCount,
+        }),
+        { status: 400 }
+      );
+    }
+
     // Create a new submission record with files stored as JSON
     const { data, error } = await supabase
       .from("submissions")
@@ -67,7 +112,7 @@ export async function POST(request: Request) {
         name: body.name,
         email: body.email, // emailは必須なのでnullチェック不要
         slug: body.slug,
-        project_slug: body.projectSlug || body.slug, // projectSlugがなければslugを使用
+        project_slug: projectSlug,
         submitted_at: body.submittedAt,
         figma_links: body.figmaLinks || [],
         files: body.files || [], // Store files as JSON
@@ -90,6 +135,12 @@ export async function POST(request: Request) {
         success: true,
         id: data.id,
         slug: body.slug,
+        fileCount: {
+          existing: existingFileCount,
+          new: newFileCount,
+          total: existingFileCount + newFileCount,
+          max: MAX_FILES_PER_PROJECT,
+        },
       }),
       { status: 201 }
     );
