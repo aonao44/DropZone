@@ -99,7 +99,7 @@ export default async function SubmissionViewPage({ params }: { params: { slug: s
   // 同じプロジェクトに関連する提出を取得
   const projectSlug = submission.project_slug || params.slug;
   const allSubmissions = await getAllSubmissions(projectSlug);
-  
+
   // 全ファイル数をカウント
   const totalFiles = allSubmissions.reduce((count, sub) => {
     return count + (Array.isArray(sub.files) ? sub.files.length : 0);
@@ -111,13 +111,13 @@ export default async function SubmissionViewPage({ params }: { params: { slug: s
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-medium text-white">ダウンロード一覧</h1>
           <div className="flex gap-2">
-            {totalFiles > 0 && (
+            {/* {totalFiles > 0 && (
               <DownloadAllButton 
                 projectSlug={projectSlug} 
                 variant="outline"
                 className="bg-gray-800 border-gray-700 hover:bg-gray-700 text-white"
               />
-            )}
+            )} */}
             <Button
               asChild
               className="bg-gradient-to-r from-indigo-500/90 to-purple-500/90 hover:from-indigo-400 hover:to-purple-400 text-white"
@@ -142,10 +142,7 @@ export default async function SubmissionViewPage({ params }: { params: { slug: s
                 <div key={index} className="bg-gray-750 rounded-lg p-3 mb-2">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-gray-300">{file.name}</p>
-                    <DownloadButton 
-                      url={file.ufsUrl || file.url}
-                      fileName={file.name}
-                    />
+                    <DownloadButton url={file.ufsUrl || file.url} fileName={file.name} />
                   </div>
                 </div>
               ))}
