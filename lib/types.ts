@@ -26,3 +26,12 @@ export interface UploadthingResponse {
   name: string;
   size: number;
 }
+
+export interface Project {
+  id?: string;
+  slug: string;
+  title: string;
+  name: string;
+  email: string;
+  created_at?: string;
+}
