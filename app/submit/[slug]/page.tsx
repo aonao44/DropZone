@@ -10,7 +10,7 @@ async function getProjectInfo(slug: string) {
   try {
     const { data, error } = await supabase
       .from("projects")
-      .select("slug, title, name, email")
+      .select("slug, title, name, email, created_at")
       .eq("slug", slug)
       .single();
 
@@ -34,9 +34,22 @@ export default async function SubmitWithSlugPage({ params }: { params: { slug: s
     notFound();
   }
 
+  const { title, name: requesterName, email: requesterEmail, created_at } = projectInfo;
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <ClientSubmissionForm projectSlug={slug} showHistoryButton={true} />
+    <div className="min-h-screen flex flex-col items-center justify-start bg-gray-900 px-4 py-10 space-y-6">
+      <div className="w-full flex justify-center">
+        <ClientSubmissionForm
+          projectSlug={slug}
+          showHistoryButton={true}
+          projectInfo={{
+            title,
+            requesterName,
+            requesterEmail,
+            createdAt: created_at,
+          }}
+        />
+      </div>
     </div>
   );
 }

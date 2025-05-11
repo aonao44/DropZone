@@ -22,12 +22,21 @@ import { createClient } from "@supabase/supabase-js"; // ←こっちを復活
 
 import { useUser } from "@clerk/nextjs"; // Clerkを使っている場合
 
+type ProjectInfo = {
+  title: string;
+  requesterName: string;
+  requesterEmail: string;
+  createdAt: string;
+};
+
 export function ClientSubmissionForm({
   projectSlug = "",
   showHistoryButton = true,
+  projectInfo,
 }: {
   projectSlug?: string;
   showHistoryButton?: boolean;
+  projectInfo?: ProjectInfo;
 }) {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -319,7 +328,19 @@ export function ClientSubmissionForm({
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* プロジェクト情報カード */}
+                {projectInfo && (
+                  <div className={`space-y-2 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
+                    <h3 className={`text-sm font-medium ${themeClasses.text}`}>プロジェクト情報</h3>
+                    <p className={`text-sm ${themeClasses.mutedText}`}>プロジェクト名: {projectInfo.title}</p>
+                    <p className={`text-sm ${themeClasses.mutedText}`}>依頼者: {projectInfo.requesterName}</p>
+                    <p className={`text-sm ${themeClasses.mutedText}`}>メール: {projectInfo.requesterEmail}</p>
+                    <p className={`text-sm ${themeClasses.mutedText}`}>
+                      発行日: {new Date(projectInfo.createdAt).toLocaleDateString("ja-JP")}
+                    </p>
+                  </div>
+                )}
                 {/* 提出者情報セクション */}
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
                   <h3 className={`text-sm font-medium flex items-center gap-1.5 ${themeClasses.text}`}>
@@ -371,8 +392,6 @@ export function ClientSubmissionForm({
                     </div>
                   </div>
                 </div>
-
-                <Separator className={themeClasses.separator} />
 
                 {/* ファイルアップロードセクション */}
                 <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
