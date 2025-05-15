@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { ProjectSubmissionCard } from "@/components/ProjectSubmissionCard";
 
 export default async function ViewSubmissionsPage({ params }: { params: { slug: string } }) {
-  const slug = params.slug;
+  const { slug } = await params;
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
   
