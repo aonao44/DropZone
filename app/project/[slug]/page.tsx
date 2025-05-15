@@ -22,7 +22,7 @@ export default async function ProjectPage({ params }: { params: { slug: string }
   const { count, error: countError } = await supabase
     .from('submissions')
     .select('*', { count: 'exact', head: true })
-    .eq('project_id', project.id);
+    .eq('project_slug', params.slug);
   
   return (
     <div className="container py-10">
