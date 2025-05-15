@@ -4,7 +4,7 @@ import React from "react";
 import { format } from "date-fns";
 import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { DownloadButton } from "@/components/DownloadButton";
-import { User, Calendar, PaperClip, Link as LinkIcon } from "lucide-react";
+import { User, Calendar, Paperclip, Link as LinkIcon } from "lucide-react";
 import { Submission } from "@/lib/types";
 
 interface ProjectSubmissionCardProps {
@@ -58,7 +58,7 @@ export function ProjectSubmissionCard({ submission }: ProjectSubmissionCardProps
         {submission.files && submission.files.length > 0 && (
           <div className={themeClasses.section}>
             <h4 className={themeClasses.sectionTitle}>
-              <PaperClip className="h-4 w-4" /> 
+              <Paperclip className="h-4 w-4" /> 
               アップロードファイル ({submission.files.length})
             </h4>
             <div className="space-y-1">
