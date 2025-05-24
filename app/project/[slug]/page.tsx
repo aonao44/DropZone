@@ -1,5 +1,5 @@
 import { DownloadAllButton } from "@/components/DownloadAllButton";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -31,7 +31,6 @@ export default async function ProjectPage({ params }: { params: { slug: string }
   console.log("submissionsError:", submissionsError);
 
   const hasSubmissions = submissions && submissions.length > 0;
-
   return (
     <div className="container py-10">
       <div className="flex justify-between items-center mb-6">
