@@ -47,26 +47,24 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 px-4">
-      <Card className="border-0 shadow-xl bg-card/95 backdrop-blur-sm w-full max-w-md">
+    <div className="min-h-screen flex items-center w-full max-w-none bg-gray-900 px-4">
+      <Card className="border-0 shadow-xl bg-card/95 backdrop-blur-sm w-full max-w-5xl mx-auto">
         <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
         <CardHeader className="pb-2">
           <div className="flex flex-col items-center space-y-3 mb-2">
             <DropZoneLogo isDark={true} />
-            <CardTitle className="text-2xl font-light tracking-tight mt-2">プロジェクト発行</CardTitle>
+            <CardTitle className="text-4xl font-light tracking-tight mt-2">プロジェクト発行</CardTitle>
           </div>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-lg">
             素材提出フォームを作成するためにプロジェクト情報を入力してください
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-4 rounded-lg bg-gray-700/60 border border-dashed border-gray-600/70 p-4">
-              <h3 className="text-sm font-medium flex items-center gap-1.5 text-gray-200">
-                プロジェクト情報
-              </h3>
+              <h3 className="text-xl font-medium flex items-center gap-1.5 text-gray-200">プロジェクト情報</h3>
               <div className="space-y-2">
-                <Label htmlFor="title" className="text-sm font-normal text-gray-300">
+                <Label htmlFor="title" className="text-lg font-normal text-gray-300">
                   プロジェクト名 <span className="text-indigo-300">*</span>
                 </Label>
                 <div className="relative group">
@@ -77,13 +75,13 @@ export default function Home() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="transition-all border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400 pr-4"
+                    className="transition-all border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400 pr-4 text-xl h-14"
                   />
                   <div className="absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50"></div>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-normal text-gray-300">
+                <Label htmlFor="name" className="text-lg font-normal text-gray-300">
                   依頼者名 <span className="text-indigo-300">*</span>
                 </Label>
                 <div className="relative group">
@@ -94,13 +92,13 @@ export default function Home() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="transition-all border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400 pr-4"
+                    className="transition-all border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400 pr-4 text-xl h-14"
                   />
                   <div className="absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50"></div>
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-normal text-gray-300">
+                <Label htmlFor="email" className="text-lg font-normal text-gray-300">
                   依頼者メールアドレス <span className="text-indigo-300">*</span>
                 </Label>
                 <div className="relative group">
@@ -111,7 +109,7 @@ export default function Home() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="transition-all border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400 pr-4"
+                    className="transition-all border-gray-600/70 bg-input focus-visible:ring-indigo-400 focus-visible:border-indigo-500 placeholder:text-gray-400 pr-4 text-xl h-14"
                   />
                   <div className="absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50"></div>
                 </div>
@@ -119,7 +117,7 @@ export default function Home() {
             </div>
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-indigo-500/90 to-purple-500/90 hover:from-indigo-400 hover:to-purple-400 text-white hover:text-white py-6"
+              className="w-full bg-gradient-to-r from-indigo-500/90 to-purple-500/90 hover:from-indigo-400 hover:to-purple-400 text-white hover:text-white py-8 text-2xl"
               disabled={isSubmitting}
             >
               {isSubmitting ? "送信中..." : "プロジェクト作成"}

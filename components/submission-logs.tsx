@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Download, Eye, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { createClient } from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
+import { DownloadButton } from "@/components/DownloadButton";
+import { DownloadAllButton } from "@/components/DownloadAllButton";
 
 // 仮のデータ型定義
 interface SubmissionLog {
@@ -16,36 +19,49 @@ interface SubmissionLog {
   assetsCount: number;
   figmaLinksCount: number;
   viewUrl: string;
+  files: any[];
 }
-
-// 仮データ
-const logs: SubmissionLog[] = [
-  {
-    id: "log_1",
-    date: "2025年3月20日",
-    time: "15:30",
-    name: "山田 太郎",
-    assetsCount: 3,
-    figmaLinksCount: 1,
-    viewUrl: "/logs/1",
-  },
-  {
-    id: "log_2",
-    date: "2025年3月18日",
-    time: "11:15",
-    name: "佐藤 花子",
-    assetsCount: 1,
-    figmaLinksCount: 2,
-    viewUrl: "/logs/2",
-  },
-];
 
 interface SubmissionLogsProps {
   isDark?: boolean;
+  projectSlug: string;
 }
 
-export function SubmissionLogs({ isDark = false }: SubmissionLogsProps) {
+export function SubmissionLogs({ isDark = false, projectSlug }: SubmissionLogsProps) {
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<SubmissionLog[]>([]);
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
+  );
+
+  useEffect(() => {
+    if (!projectSlug) return;
+    const fetchLogs = async () => {
+      const { data, error } = await supabase
+        .from("submissions")
+        .select("id, submitted_at, name, files, figma_links, slug, project_slug")
+        .eq("slug", projectSlug)
+        .order("submitted_at", { ascending: false });
+      if (error) {
+        setLogs([]);
+        return;
+      }
+      setLogs(
+        (data || []).map((item: any) => ({
+          id: item.id,
+          date: new Date(item.submitted_at).toLocaleDateString("ja-JP"),
+          time: new Date(item.submitted_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+          name: item.name,
+          assetsCount: Array.isArray(item.files) ? item.files.length : 0,
+          figmaLinksCount: Array.isArray(item.figma_links) ? item.figma_links.length : 0,
+          viewUrl: `/project/${projectSlug}/view`,
+          files: item.files || [],
+        }))
+      );
+    };
+    fetchLogs();
+  }, [projectSlug]);
 
   const toggleExpand = (id: string) => {
     setExpandedLogId(expandedLogId === id ? null : id);
@@ -79,10 +95,10 @@ export function SubmissionLogs({ isDark = false }: SubmissionLogsProps) {
       };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 text-2xl w-full max-w-none mx-auto">
       {logs.length === 0 ? (
         <div className="text-center py-10">
-          <p className={`${themeClasses.mutedText}`}>まだ提出履歴はありません</p>
+          <p className={`${themeClasses.mutedText} text-2xl`}>まだ提出履歴はありません</p>
         </div>
       ) : (
         logs.map((log) => (
@@ -91,33 +107,36 @@ export function SubmissionLogs({ isDark = false }: SubmissionLogsProps) {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2 }}
-            className={`border rounded-lg p-4 transition-all duration-200 ${
+            className={`w-full max-w-none mx-auto border rounded-lg p-8 transition-all duration-200 ${
               expandedLogId === log.id ? themeClasses.logCardExpanded : themeClasses.logCard
-            }`}
+            } cursor-pointer text-2xl`}
+            onClick={() => toggleExpand(log.id)}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className={`${themeClasses.iconBg} p-2 rounded-md`}>
-                  <Clock className={`h-4 w-4 ${themeClasses.iconFg}`} />
+                <div className={`${themeClasses.iconBg} p-4 rounded-md`}>
+                  <Clock className={`h-6 w-6 ${themeClasses.iconFg}`} />
                 </div>
                 <div>
-                  <p className={`text-sm font-medium ${themeClasses.text}`}>{log.name}</p>
-                  <p className={`text-xs ${themeClasses.dateTime}`}>
+                  <p className={`text-2xl font-medium ${themeClasses.text}`}>{log.name}</p>
+                  <p className={`text-lg ${themeClasses.dateTime}`}>
                     {log.date} {log.time}
                   </p>
                 </div>
               </div>
-
               <Button
                 variant="ghost"
-                size="sm"
-                onClick={() => toggleExpand(log.id)}
-                className={`p-1 rounded-full ${
+                size="lg"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleExpand(log.id);
+                }}
+                className={`p-2 rounded-full text-2xl ${
                   expandedLogId === log.id ? themeClasses.expandButtonActive : themeClasses.expandButton
                 }`}
               >
                 <ChevronRight
-                  className={`h-5 w-5 transition-transform duration-200 ${expandedLogId === log.id ? "rotate-90" : ""}`}
+                  className={`h-8 w-8 transition-transform duration-200 ${expandedLogId === log.id ? "rotate-90" : ""}`}
                 />
               </Button>
             </div>
@@ -128,7 +147,7 @@ export function SubmissionLogs({ isDark = false }: SubmissionLogsProps) {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 transition={{ duration: 0.2 }}
-                className="mt-3 pt-3 border-t border-dashed border-gray-200 dark:border-gray-600/50"
+                className="mt-3 pt-6 border-t border-dashed border-gray-200 dark:border-gray-600/50 text-xl"
               >
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   <div>
@@ -140,19 +159,29 @@ export function SubmissionLogs({ isDark = false }: SubmissionLogsProps) {
                     <p className={`text-sm ${themeClasses.text}`}>{log.figmaLinksCount}個</p>
                   </div>
                 </div>
-
-                <div className="flex space-x-2 mt-3">
-                  <Button size="sm" variant="outline" className={`text-xs py-1 px-3 h-auto ${themeClasses.buttonBg}`}>
-                    <Download className="h-3 w-3 mr-1" />
-                    全てダウンロード
-                  </Button>
-                  <Link href={log.viewUrl} passHref>
-                    <Button size="sm" variant="outline" className={`text-xs py-1 px-3 h-auto ${themeClasses.buttonBg}`}>
-                      <Eye className="h-3 w-3 mr-1" />
-                      詳細を見る
-                    </Button>
-                  </Link>
-                </div>
+                {/* 画像リスト表示（filesを必ず配列に変換） */}
+                {(() => {
+                  console.log("log.files", log.files);
+                  const files = typeof log.files === "string" ? JSON.parse(log.files) : log.files;
+                  return Array.isArray(files) && files.length > 0 ? (
+                    <div className="mt-2 space-y-2">
+                      {files.map((file: any, idx: number) => (
+                        <div key={idx} className="flex flex-row items-center gap-6 p-4 w-full border-b last:border-b-0">
+                          <img
+                            src={file.url}
+                            alt={file.name}
+                            className="w-20 h-20 object-cover rounded border flex-shrink-0"
+                            style={{ background: "#222" }}
+                          />
+                          <span className="flex-1 text-2xl truncate overflow-hidden whitespace-nowrap px-2">
+                            {file.name}
+                          </span>
+                          <DownloadButton url={file.url} fileName={file.name} variant="ghost" />
+                        </div>
+                      ))}
+                    </div>
+                  ) : null;
+                })()}
               </motion.div>
             )}
           </motion.div>

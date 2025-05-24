@@ -1,44 +1,46 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
-import { NextRequest, NextResponse } from 'next/server';
-import archiver from 'archiver';
-import { Readable, PassThrough } from 'stream';
-import axios from 'axios';
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { NextRequest, NextResponse } from "next/server";
+import archiver from "archiver";
+import { Readable, PassThrough } from "stream";
+import axios from "axios";
 
 export async function GET(request: NextRequest) {
   try {
     // Get the projectSlug from query params
     const { searchParams } = new URL(request.url);
-    const projectSlug = searchParams.get('projectSlug');
+    const projectSlug = searchParams.get("projectSlug");
 
     if (!projectSlug) {
-      return NextResponse.json({ error: 'Project slug is required' }, { status: 400 });
+      return NextResponse.json({ error: "Project slug is required" }, { status: 400 });
     }
 
-    // Initialize Supabase client
-    const supabase = createRouteHandlerClient({ cookies });
+    // Initialize Supabase client (public, no auth)
+    const supabase = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     // Fetch all submissions for the project directly
     const { data: submissions, error: submissionsError } = await supabase
-      .from('submissions')
-      .select('id, name, files')
-      .eq('project_slug', projectSlug);
+      .from("submissions")
+      .select("id, name, files")
+      .eq("project_slug", projectSlug);
 
     if (submissionsError) {
-      console.error('Error fetching submissions:', submissionsError);
-      return NextResponse.json({ error: 'Failed to fetch submissions' }, { status: 500 });
+      console.error("Error fetching submissions:", submissionsError);
+      return NextResponse.json({ error: "Failed to fetch submissions" }, { status: 500 });
     }
 
     if (!submissions || submissions.length === 0) {
-      return NextResponse.json({ error: 'No submissions found for this project' }, { status: 404 });
+      return NextResponse.json({ error: "No submissions found for this project" }, { status: 404 });
     }
 
     // Create a PassThrough stream to pipe the archive to
     const passThrough = new PassThrough();
-    
+
     // Create an archive
-    const archive = archiver('zip', {
-      zlib: { level: 9 } // Compression level
+    const archive = archiver("zip", {
+      zlib: { level: 9 }, // Compression level
     });
 
     // Pipe the archive to the PassThrough stream
@@ -48,7 +50,7 @@ export async function GET(request: NextRequest) {
     const usedFilenames = new Set();
 
     // Process each submission and add its files to the archive
-    const downloadPromises = submissions.flatMap(submission => {
+    const downloadPromises = submissions.flatMap((submission) => {
       if (!submission.files || !Array.isArray(submission.files) || submission.files.length === 0) {
         return [];
       }
@@ -59,40 +61,40 @@ export async function GET(request: NextRequest) {
           if (!fileUrl) return;
 
           // Extract the original filename from the URL
-          let origFilename = file.name || fileUrl.split('/').pop() || `file-${fileIndex}.dat`;
-          
+          let origFilename = file.name || fileUrl.split("/").pop() || `file-${fileIndex}.dat`;
+
           // Create a unique filename including the submission ID to avoid collisions
           let filename = `${submission.id}-${origFilename}`;
-          
+
           // If we already have this filename, add a counter
           if (usedFilenames.has(filename)) {
             let counter = 1;
-            const baseName = filename.substring(0, filename.lastIndexOf('.')) || filename;
-            const extension = filename.substring(filename.lastIndexOf('.')) || '';
-            
+            const baseName = filename.substring(0, filename.lastIndexOf(".")) || filename;
+            const extension = filename.substring(filename.lastIndexOf(".")) || "";
+
             while (usedFilenames.has(`${baseName}-${counter}${extension}`)) {
               counter++;
             }
-            
+
             filename = `${baseName}-${counter}${extension}`;
           }
-          
+
           usedFilenames.add(filename);
 
           // Download the file
           const response = await axios({
-            method: 'get',
+            method: "get",
             url: fileUrl,
-            responseType: 'arraybuffer'
+            responseType: "arraybuffer",
           });
 
           // Add the downloaded file to the archive
           const fileBuffer = Buffer.from(response.data);
-          
+
           // Create folder structure by submission name
-          const submissionFolder = `${submission.name.replace(/[\/\\?%*:|"<>]/g, '_')}`;
+          const submissionFolder = `${submission.name.replace(/[\/\\?%*:|"<>]/g, "_")}`;
           archive.append(fileBuffer, { name: `${submissionFolder}/${origFilename}` });
-          
+
           return filename;
         } catch (err) {
           console.error(`Error downloading file from submission ${submission.id}:`, err);
@@ -108,16 +110,16 @@ export async function GET(request: NextRequest) {
     await archive.finalize();
 
     // Set the appropriate headers for the response
-    const filename = `${projectSlug}-submissions-${new Date().toISOString().split('T')[0]}.zip`;
-    
+    const filename = `${projectSlug}-submissions-${new Date().toISOString().split("T")[0]}.zip`;
+
     return new NextResponse(passThrough, {
       headers: {
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Type': 'application/zip',
+        "Content-Disposition": `attachment; filename="${filename}"`,
+        "Content-Type": "application/zip",
       },
     });
   } catch (error) {
-    console.error('Error in download-all route:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error in download-all route:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

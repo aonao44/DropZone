@@ -148,8 +148,8 @@ export function ClientSubmissionForm({
           await fetchExistingFileCount(slug);
           // ファイルリストをクリア
           setLogoFiles([]);
-          // Redirect to view page
-          router.push(`/project/${slug}/view`);
+          // 提出完了状態に設定
+          setIsSubmitted(true);
         } else {
           console.error("Failed to create submission:", await response.text());
           setIsUploading(false);
@@ -218,8 +218,8 @@ export function ClientSubmissionForm({
         if (response.ok) {
           // 送信完了後、最新のファイル数を再取得
           await fetchExistingFileCount(slug);
-          // Redirect to view page
-          router.push(`/project/${slug}/view`);
+          // 提出完了状態に設定
+          setIsSubmitted(true);
         } else {
           console.error("Failed to create submission:", await response.text());
           setIsUploading(false);
@@ -255,7 +255,7 @@ export function ClientSubmissionForm({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-md"
+        className="w-full max-w-4xl mx-auto"
       >
         <Card className={themeClasses.card}>
           <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
@@ -277,7 +277,7 @@ export function ClientSubmissionForm({
             <CardDescription className="text-center">過去の素材提出履歴を確認できます</CardDescription>
           </CardHeader>
           <CardContent>
-            <SubmissionLogs isDark={true} />
+            <SubmissionLogs isDark={true} projectSlug={submissionSlug} />
           </CardContent>
         </Card>
       </motion.div>
@@ -292,14 +292,14 @@ export function ClientSubmissionForm({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-md"
+          className="w-full max-w-4xl md:w-full sm:w-full mx-auto text-xl"
         >
           <Card className={themeClasses.card}>
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
             <CardHeader className="pb-2">
               <div className="flex flex-col items-center space-y-3 mb-2">
                 <DropZoneLogo isDark={true} />
-                <CardTitle className="text-2xl font-light tracking-tight mt-2">素材提出フォーム</CardTitle>
+                <CardTitle className="text-4xl font-light tracking-tight mt-2">素材提出フォーム</CardTitle>
               </div>
               <CardDescription className="text-center">
                 プロジェクトに必要な素材をアップロードしてください
@@ -310,7 +310,7 @@ export function ClientSubmissionForm({
                     variant="outline"
                     size="sm"
                     onClick={() => setViewingLogs(true)}
-                    className={`${themeClasses.logButton} border-dashed`}
+                    className={`${themeClasses.logButton} border-dashed text-xl py-4 px-8`}
                   >
                     <History className="h-4 w-4 mr-1" /> 履歴を確認
                   </Button>
@@ -360,7 +360,7 @@ export function ClientSubmissionForm({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className={`transition-all ${themeClasses.input} pr-4`}
+                        className={`transition-all ${themeClasses.input} pr-4 text-xl h-14`}
                       />
                       <div
                         className={`absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50`}
@@ -384,7 +384,7 @@ export function ClientSubmissionForm({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className={`transition-all ${themeClasses.input} pr-4`}
+                        className={`transition-all ${themeClasses.input} pr-4 text-xl h-14`}
                       />
                       <div
                         className={`absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50`}
@@ -427,7 +427,7 @@ export function ClientSubmissionForm({
                       placeholder="https://figma.com/file/..."
                       value={figmaUrl}
                       onChange={(e) => setFigmaUrl(e.target.value)}
-                      className={`transition-all ${themeClasses.input} pr-4`}
+                      className={`transition-all ${themeClasses.input} pr-4 text-xl h-14`}
                     />
                     <div
                       className={`absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50`}
@@ -437,7 +437,7 @@ export function ClientSubmissionForm({
 
                 <Button
                   type="submit"
-                  className={`w-full ${themeClasses.button} text-white hover:text-white py-6`}
+                  className={`w-full ${themeClasses.button} text-white hover:text-white py-10 text-xl`}
                   disabled={isUploading || isUploadingFile || !name}
                 >
                   {isUploading || isUploadingFile ? (
@@ -458,7 +458,7 @@ export function ClientSubmissionForm({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-md"
+          className="w-full max-w-lg mx-auto"
         >
           <Card className={themeClasses.card}>
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
@@ -500,6 +500,16 @@ export function ClientSubmissionForm({
                 </div>
               </div>
             </CardContent>
+            <div className="flex justify-center mt-6">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewingLogs(true)}
+                className={`${themeClasses.logButton} border-dashed`}
+              >
+                <History className="h-4 w-4 mr-1" /> 履歴を確認
+              </Button>
+            </div>
           </Card>
         </motion.div>
       )}
