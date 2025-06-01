@@ -8,10 +8,10 @@ interface SubmissionFile {
   url: string;
 }
 
-export default async function ProjectViewPage({ params }: { params: { slug: string } }) {
-  // In Next 15 the `params` object is actually a `Promise` when used in
+export default async function ProjectViewPage({ params }: { params: Promise<{ slug: string }> }) {
+  // In Next 15 the `params` object is actually a `Promise` when used in
   // route segments, so we need to await it before destructuring.
-  const { slug } = await Promise.resolve(params);
+  const { slug } = await params;
 
   // fetch submission data for this project slug
   const supabase = createClient(cookies());

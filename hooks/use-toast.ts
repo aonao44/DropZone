@@ -5,6 +5,7 @@ interface ToastOptions {
   description?: string;
   duration?: number;
   id?: string;
+  action?: React.ReactNode;
 }
 
 export function useToast() {

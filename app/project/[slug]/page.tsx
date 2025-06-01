@@ -3,12 +3,12 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-export default async function ProjectPage({ params }: { params: { slug: string } }) {
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
 
   // Fetch project data
-  const slug = params.slug.trim();
+  const { slug } = await params;
   console.log("Debug: slug = ", slug);
 
   const { data: project, error } = await supabase.from("projects").select("*").eq("slug", slug).single();
@@ -25,7 +25,7 @@ export default async function ProjectPage({ params }: { params: { slug: string }
   const { data: submissions, error: submissionsError } = await supabase
     .from("submissions")
     .select("*")
-    .eq("project_slug", params.slug);
+    .eq("project_slug", slug);
 
   console.log("submissions:", submissions);
   console.log("submissionsError:", submissionsError);
@@ -37,7 +37,7 @@ export default async function ProjectPage({ params }: { params: { slug: string }
         <h1 className="text-3xl font-bold">{project.title}</h1>
 
         <div className="flex gap-2">
-          {hasSubmissions && <DownloadAllButton project_slug={params.slug} variant="secondary" />}
+          {hasSubmissions && <DownloadAllButton projectSlug={slug} variant="secondary" />}
           {/* Other action buttons */}
         </div>
       </div>

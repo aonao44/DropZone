@@ -26,7 +26,7 @@ async function getProjectInfo(slug: string) {
   }
 }
 
-export default async function SubmitWithSlugPage({ params }: { params: { slug: string } }) {
+export default async function SubmitWithSlugPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const projectInfo = await getProjectInfo(slug);
 

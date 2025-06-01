@@ -112,7 +112,22 @@ export async function GET(request: NextRequest) {
     // Set the appropriate headers for the response
     const filename = `${projectSlug}-submissions-${new Date().toISOString().split("T")[0]}.zip`;
 
-    return new NextResponse(passThrough, {
+    // Convert PassThrough to ReadableStream for Next.js 15
+    const readableStream = new ReadableStream({
+      start(controller) {
+        passThrough.on('data', (chunk) => {
+          controller.enqueue(chunk);
+        });
+        passThrough.on('end', () => {
+          controller.close();
+        });
+        passThrough.on('error', (err) => {
+          controller.error(err);
+        });
+      }
+    });
+
+    return new NextResponse(readableStream, {
       headers: {
         "Content-Disposition": `attachment; filename="${filename}"`,
         "Content-Type": "application/zip",
