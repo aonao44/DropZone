@@ -206,7 +206,9 @@ export function ClientSubmissionForm({
         for (let i = 0; i < files.length; i += batchSize) {
           const batch = files.slice(i, i + batchSize);
           const batchResults = await startUpload(batch);
-          results.push(...batchResults);
+          if (batchResults) {
+            results.push(...batchResults);
+          }
         }
         return results;
       };
