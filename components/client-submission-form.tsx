@@ -537,4 +537,51 @@ export function ClientSubmissionForm({
   );
 }
 
-// 539行目以降のhandleCreateSubmission関数定義を削除
+// Add the handleCreateSubmission function here (around line 100)
+const handleCreateSubmission = async (uploadedFiles?: any[]) => {
+  try {
+    // 提出データの準備
+    const submissionData = {
+      name,
+      email,
+      slug: submissionSlug, // Use submissionSlug state variable
+      projectSlug: submissionSlug, // project_slugとしても同じslugを使用
+      submittedAt: new Date().toISOString(),
+      files: uploadedFiles
+        ? uploadedFiles.map((file: any) => ({
+            name: file.fileName || file.name,
+            url: file.ufsUrl || file.fileUrl || file.url, // v9互換性対応
+          }))
+        : [],
+      figmaLinks: figmaUrl ? [figmaUrl] : [],
+    };
+
+    // Supabaseに保存
+    const response = await fetch("/api/submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(submissionData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // 正常に保存された場合は成功状態に設定
+      setLogoFiles([]);
+      setIsSubmitted(true);
+      setIsUploading(false);
+      // 送信完了後、最新のファイル数を再取得
+      await fetchExistingFileCount(submissionSlug);
+    } else {
+      // エラー処理
+      console.error("Failed to create submission:", data.error);
+      setIsUploading(false);
+    }
+  } catch (error) {
+    console.error("Error in submission creation:", error);
+    setIsUploading(false);
+  }
+};
+}
