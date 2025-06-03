@@ -115,7 +115,12 @@ export function ClientSubmissionForm({
   };
 
   // UploadThing hook for file uploads
+  const [uploadProgress, setUploadProgress] = useState(0);
+
   const { startUpload, isUploading: isUploadingFile } = useUploadThing("imageUploader", {
+    onUploadProgress: (progress) => {
+      setUploadProgress(progress);
+    },
     onClientUploadComplete: async (res) => {
       console.log("Upload completed:", res);
 
@@ -195,35 +200,48 @@ export function ClientSubmissionForm({
       const slug = submissionSlug || generateRandomSlug();
 
       // Upload files to UploadThing if they exist
-      if (logoFiles.length > 0) {
-        await startUpload(logoFiles);
-      } else {
-        // If no files, just create a submission record
-        const response = await fetch("/api/submissions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            projectSlug: slug,
-            slug: slug,
-            submittedAt: new Date().toISOString(),
-            files: [],
-            figmaLinks: figmaUrl ? [figmaUrl] : [],
-          }),
-        });
-
-        if (response.ok) {
-          // 送信完了後、最新のファイル数を再取得
-          await fetchExistingFileCount(slug);
-          // 提出完了状態に設定
-          setIsSubmitted(true);
-        } else {
-          console.error("Failed to create submission:", await response.text());
-          setIsUploading(false);
+      // 並列アップロード用の関数を追加
+      const uploadFilesInBatches = async (files: File[], batchSize = 3) => {
+        const results = [];
+        for (let i = 0; i < files.length; i += batchSize) {
+          const batch = files.slice(i, i + batchSize);
+          const batchResults = await startUpload(batch);
+          results.push(...batchResults);
         }
+        return results;
+      };
+      
+      // handleSubmit内で使用
+      if (logoFiles.length > 0) {
+        const uploadedFiles = await uploadFilesInBatches(logoFiles, 3);
+        await handleCreateSubmission(uploadedFiles);
+      }
+      
+      // If no files, just create a submission record
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          projectSlug: slug,
+          slug: slug,
+          submittedAt: new Date().toISOString(),
+          files: [],
+          figmaLinks: figmaUrl ? [figmaUrl] : [],
+        }),
+      });
+
+      if (response.ok) {
+        // 送信完了後、最新のファイル数を再取得
+        await fetchExistingFileCount(slug);
+        // 提出完了状態に設定
+        setIsSubmitted(true);
+      } else {
+        console.error("Failed to create submission:", await response.text());
+        setIsUploading(false);
       }
     } catch (error) {
       console.error("Error in form submission:", error);
@@ -516,3 +534,51 @@ export function ClientSubmissionForm({
     </AnimatePresence>
   );
 }
+
+// 提出レコードを作成する共通関数
+const handleCreateSubmission = async (uploadedFiles?: any[]) => {
+  try {
+    // 提出データの準備
+    const submissionData = {
+      name,
+      email,
+      slug: slug, // プロジェクトのslugを使用
+      projectSlug: slug, // project_slugとしても同じslugを使用
+      submittedAt: new Date().toISOString(),
+      files: uploadedFiles
+        ? uploadedFiles.map((file: any) => ({
+            name: file.fileName || file.name,
+            url: file.ufsUrl || file.fileUrl || file.url, // v9互換性対応
+          }))
+        : [],
+      figmaLinks: figmaUrl ? [figmaUrl] : [],
+    };
+
+    // Supabaseに保存
+    const response = await fetch("/api/submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(submissionData),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // 正常に保存された場合は成功状態に設定
+      setFiles([]);
+      setIsSubmitted(true);
+      setIsUploading(false);
+    } else {
+      // エラー処理
+      console.error("Failed to create submission:", data.error);
+      setErrorMessage(data.error || "提出の保存に失敗しました。もう一度お試しください。");
+      setIsUploading(false);
+    }
+  } catch (error) {
+    console.error("Error in submission creation:", error);
+    setErrorMessage("予期せぬエラーが発生しました。もう一度お試しください。");
+    setIsUploading(false);
+  }
+};

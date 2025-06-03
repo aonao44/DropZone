@@ -5,6 +5,7 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Upload, File, X, AlertCircle } from "lucide-react";
+import imageCompression from 'browser-image-compression';
 
 interface FileUploaderProps {
   id: string;
@@ -220,3 +221,18 @@ export function FileUploader({
     </div>
   );
 }
+
+const compressImage = async (file: File) => {
+  const options = {
+    maxSizeMB: 1,
+    maxWidthOrHeight: 1920,
+    useWebWorker: true
+  };
+  
+  try {
+    return await imageCompression(file, options);
+  } catch (error) {
+    console.log(error);
+    return file;
+  }
+};
