@@ -537,7 +537,7 @@ export function ClientSubmissionForm({
   );
 }
 
-// 提出レコードを作成する共通関数（コンポーネント内に移動）
+// 提出レコードを作成する共通関数
 const handleCreateSubmission = async (uploadedFiles?: any[]) => {
   try {
     // 提出データの準備
