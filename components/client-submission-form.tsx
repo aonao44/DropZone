@@ -584,4 +584,4 @@ const handleCreateSubmission = async (uploadedFiles?: any[]) => {
     setIsUploading(false);
   }
 };
-}
+// Remove the extra closing brace that was at line 587
