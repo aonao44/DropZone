@@ -15,36 +15,37 @@
 
 #### 実装内容
 
-- [ ] **環境構築**
+- [x] **環境構築**
 
-  - Next.js 15 / TS / Tailwind / shadcn/ui / react-hook-form / zod / date-fns
-  - Sentry（エラートラッキング）、ESLint/Prettier
-  - `.env.local` 初期化（Clerk, Database URL, UploadThing, Resend, Stripe）
+  - Next.js 15 / TS / Tailwind / shadcn/ui / UploadThing
+  - ESLint/Prettier
+  - `.env.local` 初期化（Clerk, Supabase, UploadThing）
 
-- [ ] **認証（管理者のみ）**
+- [ ] **認証（管理者のみ）** ← 一時的に無効化中
 
   - ClerkProvider + `middleware.ts`（/dashboard 配下保護）
   - `/sign-in` `/sign-up`（UI 最小）
   - セッション取得ユーティリティ（server components 用）
 
-- [ ] **DB/スキーマ（Prisma + Postgres）**
+- [x] **DB/スキーマ（Supabase + Postgres）**
 
-  - モデル：User / Project / Submission / Asset / Event / Plan
-  - 初期マイグレーション・種データ（テンプレ種別）
+  - テーブル：projects / submissions / files / user_profiles
+  - 初期マイグレーション完了（4マイグレーション適用済み）
 
-- [ ] **アップロード基盤**
+- [x] **アップロード基盤**
 
   - UploadThing（署名付き URL・ドラッグ&ドロップ）
-  - アップロード制限（拡張子/容量）と TTL 設定
+  - アップロード制限（拡張子/容量：10ファイル、8MB）
 
-- [ ] **共通 UI/レイアウト**
+- [x] **共通 UI/レイアウト**
 
-  - ヘッダー（ログイン時のユーザーメニュー）
-  - トースト/ローディング/エラーバウンダリ
+  - Shadcn/ui コンポーネント（Button, Card, Input等）
+  - トースト/ローディング
+  - DropZoneLogo コンポーネント
 
 - [ ] **監視/ログ**
 
-  - 重要イベント（作成/提出/失敗）を Event へ記録
+  - 重要イベント（作成/提出/失敗）を Event へ記録 ← 未実装
 
 **Done 条件**
 
@@ -60,25 +61,28 @@
 
 #### 実装内容
 
-- [ ] **プロジェクト作成**
+- [x] **プロジェクト作成**
 
-  - `/dashboard/projects/new`（名称/説明/期限/テンプレ選択）
-  - スラッグ生成 `/s/:slug`
+  - `/dashboard/new`（名称/依頼者名/メールアドレス）
+  - スラッグ生成 `generateRandomSlug()`
+  - API実装済み（POST /api/projects）
 
-- [ ] **公開フォーム（ベース）**
+- [x] **公開フォーム（ベース）**
 
-  - `/s/:slug`（ログイン不要）
-  - テンプレに応じた項目レンダリング（LP/Corp/Banner の 3 型）
-  - 入力ガイド（推奨サイズ/拡張子/Figma 共有ヘルプ）
+  - `/project/[slug]/submit`（ログイン不要）
+  - ClientSubmissionForm コンポーネント実装済み
+  - ファイルアップロード、Figmaリンク入力対応
 
-- [ ] **提出完了**
+- [x] **提出完了**
 
-  - `/s/:slug/done`（再提出導線・注意書き）
+  - 提出完了画面（ClientSubmissionForm内）
+  - 履歴確認機能（SubmissionLogs）
 
-- [ ] **API/Server Actions**
+- [x] **API/Server Actions**
 
-  - プロジェクト CRUD
-  - フォームのプリセット取得
+  - プロジェクト作成 API（POST /api/projects）
+  - 提出 API（POST /api/submissions）
+  - ファイルアップロード（UploadThing）
 
 **Done 条件**
 
@@ -93,28 +97,33 @@
 
 #### 実装内容
 
-- [ ] **ファイル検証（フロント+サーバ）**
+- [x] **ファイル検証（フロント+サーバ）**
 
-  - 拡張子（png/jpg/svg 等）・容量・最小 px・アスペクト比
-  - 失敗時のフィールド別エラー表示
+  - 基本的な拡張子・容量チェック（10ファイル、8MB上限）
+  - ファイル数制限チェック実装済み
+  - ⚠️ TODO: 詳細検証（最小px・アスペクト比）は未実装
 
 - [ ] **Figma リンク検証**
 
   - URL 形式（`https://www.figma.com/file/`）・プロトコル
   - 共有手順ミニヘルプ
+  - ⚠️ TODO: 未実装
 
-- [ ] **提出データ登録**
+- [x] **提出データ登録**
 
-  - Submission 作成、Asset 登録、進捗%計算
-  - 再提出時：最新版上書き＋履歴は Event で保持
+  - Submission 作成（POST /api/submissions）
+  - ファイルは files カラムに JSON で保存
+  - ⚠️ TODO: 進捗%計算は未実装
 
-- [ ] **完了画面/再提出**
+- [x] **完了画面/再提出**
 
-  - 同 URL で追送可、完了 →done 画面へ
+  - 同 URL で追送可能
+  - 完了画面表示（ClientSubmissionForm内）
 
 - [ ] **イベント記録**
 
   - submitted/validation_error など
+  - ⚠️ TODO: Event テーブル未作成
 
 **Done 条件**
 
@@ -129,24 +138,28 @@
 
 #### 実装内容
 
-- [ ] **一覧**
+- [x] **一覧** ✅ 完了
 
-  - `/dashboard`：プロジェクト一覧（進捗％/期限/ステータス）
-  - `/dashboard/projects/:id`：提出一覧（未提出/部分/完了・更新日時・不足タグ）
+  - `/dashboard`：プロジェクト一覧（実データ取得完了）
+  - Server Component + Client Component 分離実装
+  - 提出数の表示、フォームURL コピー機能
 
-- [ ] **詳細**
+- [x] **詳細** ✅ 完了
 
-  - プレビュー（画像メタ：W×H/拡張子/容量）
-  - 不足タグ（自動/手動付与）
-  - 管理メモ
+  - `/project/[slug]/view`：プロジェクト詳細ページ実装完了
+  - 提出一覧表示、ファイルプレビュー・ダウンロード
+  - Figmaリンク表示・コピー機能
+  - アコーディオン形式で提出内容を展開表示
+  - ⚠️ TODO: 不足タグ（自動/手動付与）は未実装
+  - ⚠️ TODO: 管理メモは未実装
 
 - [ ] **フィルタ/ソート**
 
-  - 期限超過・ステータス・更新日
+  - 期限超過・ステータス・更新日 ← TODO: 未実装
 
 - [ ] **手動リマインド（下準備）**
 
-  - モーダル起動・本文テンプレ保存（送信は後続フェーズ）
+  - モーダル起動・本文テンプレ保存（送信は後続フェーズ）← TODO: 未実装
 
 **Done 条件**
 
@@ -223,18 +236,19 @@
 
 #### 実装内容
 
-- [ ] **トップ/料金**
+- [x] **トップ/料金**
 
-  - 価値訴求・機能・プラン比較（Free vs Pro）
-  - CTA と FAQ、利用規約/プライバシー
+  - ランディングページ実装済み（/page.tsx）
+  - 価値訴求・機能説明・3ステップガイド
+  - ⚠️ TODO: 料金ページ、FAQ、利用規約/プライバシーは未実装
 
 - [ ] **導入フロー**
 
-  - 「3 分でフォーム発行」チュートリアル
+  - 「3 分でフォーム発行」チュートリアル ← TODO: 未実装
 
 - [ ] **計測**
 
-  - LP→ サインアップ → 初回プロジェクト作成のファネル
+  - LP→ サインアップ → 初回プロジェクト作成のファネル ← TODO: 未実装
 
 **Done 条件**
 

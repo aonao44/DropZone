@@ -276,28 +276,28 @@ export function ClientSubmissionForm({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-4xl mx-auto"
+        className="w-full max-w-2xl sm:max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6"
       >
         <Card className={themeClasses.card}>
           <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between mb-2">
+          <CardHeader className="pb-2 p-4 sm:p-6 lg:p-8">
+            <div className="flex items-center justify-between mb-2 sm:mb-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setViewingLogs(false)}
-                className={`${themeClasses.backButton} border-dashed`}
+                className={`${themeClasses.backButton} border-dashed text-sm sm:text-base lg:text-lg py-2 px-4 sm:py-3 sm:px-6`}
               >
-                <ArrowLeft className="h-4 w-4 mr-1" /> 戻る
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> 戻る
               </Button>
             </div>
-            <div className="flex flex-col items-center space-y-3">
+            <div className="flex flex-col items-center space-y-3 sm:space-y-4">
               <DropZoneLogo isDark={true} />
-              <CardTitle className="text-2xl font-light tracking-tight">提出ログ一覧</CardTitle>
+              <CardTitle className="text-xl sm:text-2xl lg:text-4xl font-light tracking-tight">提出ログ一覧</CardTitle>
             </div>
-            <CardDescription className="text-center">過去の素材提出履歴を確認できます</CardDescription>
+            <CardDescription className="text-center text-sm sm:text-base lg:text-lg">過去の素材提出履歴を確認できます</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 lg:p-8">
             <SubmissionLogs isDark={true} projectSlug={submissionSlug} />
           </CardContent>
         </Card>
@@ -313,64 +313,64 @@ export function ClientSubmissionForm({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-4xl md:w-full sm:w-full mx-auto text-xl"
+          className="w-full max-w-2xl sm:max-w-3xl lg:max-w-5xl mx-auto px-4 sm:px-6"
         >
           <Card className={themeClasses.card}>
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
-            <CardHeader className="pb-2">
-              <div className="flex flex-col items-center space-y-3 mb-2">
+            <CardHeader className="pb-2 p-4 sm:p-6 lg:p-8">
+              <div className="flex flex-col items-center space-y-3 sm:space-y-4 mb-2">
                 <DropZoneLogo isDark={true} />
-                <CardTitle className="text-4xl font-light tracking-tight mt-2">素材提出フォーム</CardTitle>
+                <CardTitle className="text-2xl sm:text-3xl lg:text-5xl font-light tracking-tight mt-2">素材提出フォーム</CardTitle>
               </div>
-              <CardDescription className="text-center">
+              <CardDescription className="text-center text-sm sm:text-base lg:text-lg">
                 プロジェクトに必要な素材をアップロードしてください
               </CardDescription>
               {showHistoryButton && (
-                <div className="flex justify-center mt-2">
+                <div className="flex justify-center mt-2 sm:mt-4">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setViewingLogs(true)}
-                    className={`${themeClasses.logButton} border-dashed text-xl py-4 px-8`}
+                    className={`${themeClasses.logButton} border-dashed text-sm sm:text-base lg:text-xl py-2 px-4 sm:py-3 sm:px-6 lg:py-4 lg:px-8`}
                   >
-                    <History className="h-4 w-4 mr-1" /> 履歴を確認
+                    <History className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> 履歴を確認
                   </Button>
                 </div>
               )}
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 lg:p-8">
               {showFileLimitError && (
-                <div className={`${themeClasses.alert} p-3 rounded-lg mb-4 flex items-center gap-2`}>
-                  <AlertCircle className="h-4 w-4" />
-                  <p className="text-sm">
+                <div className={`${themeClasses.alert} p-3 sm:p-4 rounded-lg mb-4 flex items-center gap-2`}>
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <p className="text-sm sm:text-base lg:text-lg">
                     このプロジェクトでは最大10ファイルまでアップロード可能です。
                     {existingFileCount > 0 && `（既存: ${existingFileCount}ファイル）`}
                   </p>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 lg:space-y-6">
                 {/* プロジェクト情報カード */}
                 {projectInfo && (
-                  <div className={`space-y-2 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
-                    <h3 className={`text-sm font-medium ${themeClasses.text}`}>プロジェクト情報</h3>
-                    <p className={`text-sm ${themeClasses.mutedText}`}>プロジェクト名: {projectInfo.title}</p>
-                    <p className={`text-sm ${themeClasses.mutedText}`}>依頼者: {projectInfo.requesterName}</p>
-                    <p className={`text-sm ${themeClasses.mutedText}`}>メール: {projectInfo.requesterEmail}</p>
-                    <p className={`text-sm ${themeClasses.mutedText}`}>
+                  <div className={`space-y-2 rounded-lg ${themeClasses.section} p-4 sm:p-5 lg:p-6 border border-dashed`}>
+                    <h3 className={`text-sm sm:text-base lg:text-lg font-medium ${themeClasses.text}`}>プロジェクト情報</h3>
+                    <p className={`text-sm sm:text-base lg:text-lg ${themeClasses.mutedText}`}>プロジェクト名: {projectInfo.title}</p>
+                    <p className={`text-sm sm:text-base lg:text-lg ${themeClasses.mutedText}`}>依頼者: {projectInfo.requesterName}</p>
+                    <p className={`text-sm sm:text-base lg:text-lg ${themeClasses.mutedText}`}>メール: {projectInfo.requesterEmail}</p>
+                    <p className={`text-sm sm:text-base lg:text-lg ${themeClasses.mutedText}`}>
                       発行日: {new Date(projectInfo.createdAt).toLocaleDateString("ja-JP")}
                     </p>
                   </div>
                 )}
                 {/* 提出者情報セクション */}
-                <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
-                  <h3 className={`text-sm font-medium flex items-center gap-1.5 ${themeClasses.text}`}>
-                    <User className="h-3.5 w-3.5" />
+                <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 sm:p-5 lg:p-6 border border-dashed`}>
+                  <h3 className={`text-sm sm:text-base lg:text-lg font-medium flex items-center gap-1.5 ${themeClasses.text}`}>
+                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                     提出者情報
                   </h3>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name" className={`text-sm font-normal ${themeClasses.mutedText}`}>
+                    <Label htmlFor="name" className={`text-sm sm:text-base lg:text-lg font-normal ${themeClasses.mutedText}`}>
                       お名前 <span className="text-indigo-300">*</span>
                     </Label>
                     <div className="relative group">
@@ -381,7 +381,7 @@ export function ClientSubmissionForm({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
-                        className={`transition-all ${themeClasses.input} pr-4 text-xl h-14`}
+                        className={`transition-all ${themeClasses.input} pr-4 text-base sm:text-lg lg:text-xl h-10 sm:h-12 lg:h-16`}
                       />
                       <div
                         className={`absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50`}
@@ -392,9 +392,9 @@ export function ClientSubmissionForm({
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
-                      className={`text-sm font-normal ${themeClasses.mutedText} flex items-center gap-1.5`}
+                      className={`text-sm sm:text-base lg:text-lg font-normal ${themeClasses.mutedText} flex items-center gap-1.5`}
                     >
-                      <Mail className="h-3.5 w-3.5" />
+                      <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                       メールアドレス <span className="text-indigo-300">*</span>
                     </Label>
                     <div className="relative group">
@@ -405,7 +405,7 @@ export function ClientSubmissionForm({
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className={`transition-all ${themeClasses.input} pr-4 text-xl h-14`}
+                        className={`transition-all ${themeClasses.input} pr-4 text-base sm:text-lg lg:text-xl h-10 sm:h-12 lg:h-16`}
                       />
                       <div
                         className={`absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50`}
@@ -415,14 +415,14 @@ export function ClientSubmissionForm({
                 </div>
 
                 {/* ファイルアップロードセクション */}
-                <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 border border-dashed`}>
-                  <h3 className={`text-sm font-medium ${themeClasses.text} flex items-center gap-1.5`}>
-                    <Upload className="h-3.5 w-3.5" />
+                <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 sm:p-5 lg:p-6 border border-dashed`}>
+                  <h3 className={`text-sm sm:text-base lg:text-lg font-medium ${themeClasses.text} flex items-center gap-1.5`}>
+                    <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
                     ファイルアップロード{" "}
-                    <span className={`text-xs ${themeClasses.mutedText}`}>(プロジェクト当たり最大10ファイル)</span>
+                    <span className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText}`}>(プロジェクト当たり最大10ファイル)</span>
                   </h3>
                   {existingFileCount > 0 && (
-                    <p className={`text-xs ${themeClasses.mutedText}`}>既存ファイル数: {existingFileCount} / 10</p>
+                    <p className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText}`}>既存ファイル数: {existingFileCount} / 10</p>
                   )}
                   <FileUploader
                     id="logo-upload"
@@ -438,8 +438,8 @@ export function ClientSubmissionForm({
 
                 {/* Figmaリンクセクション */}
                 <div className="space-y-2">
-                  <Label htmlFor="figma-url" className={`text-sm font-normal ${themeClasses.mutedText}`}>
-                    Figmaリンク <span className={`text-xs ${themeClasses.mutedText}`}>(任意)</span>
+                  <Label htmlFor="figma-url" className={`text-sm sm:text-base lg:text-lg font-normal ${themeClasses.mutedText}`}>
+                    Figmaリンク <span className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText}`}>(任意)</span>
                   </Label>
                   <div className="relative group">
                     <Input
@@ -448,7 +448,7 @@ export function ClientSubmissionForm({
                       placeholder="https://figma.com/file/..."
                       value={figmaUrl}
                       onChange={(e) => setFigmaUrl(e.target.value)}
-                      className={`transition-all ${themeClasses.input} pr-4 text-xl h-14`}
+                      className={`transition-all ${themeClasses.input} pr-4 text-base sm:text-lg lg:text-xl h-10 sm:h-12 lg:h-16`}
                     />
                     <div
                       className={`absolute inset-0 -z-10 rounded-md transition-all group-hover:blur-sm group-focus-within:blur-sm opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 bg-gradient-to-r from-indigo-800/50 via-purple-800/50 to-blue-800/50`}
@@ -458,12 +458,12 @@ export function ClientSubmissionForm({
 
                 <Button
                   type="submit"
-                  className={`w-full ${themeClasses.button} text-white hover:text-white py-10 text-xl`}
+                  className={`w-full ${themeClasses.button} text-white hover:text-white py-4 sm:py-6 lg:py-10 text-base sm:text-lg lg:text-2xl`}
                   disabled={isUploading || isUploadingFile || !name}
                 >
                   {isUploading || isUploadingFile ? (
                     <span className="flex items-center justify-center gap-2">
-                      <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white"></span>
+                      <span className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-t-2 border-b-2 border-white"></span>
                       アップロード中...
                     </span>
                   ) : (
@@ -479,56 +479,56 @@ export function ClientSubmissionForm({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-lg mx-auto"
+          className="w-full max-w-md sm:max-w-lg lg:max-w-2xl mx-auto px-4 sm:px-6"
         >
           <Card className={themeClasses.card}>
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <div className="bg-indigo-500/10 rounded-full p-4 mb-6">
-                <CheckCircle className="h-12 w-12 text-indigo-400" />
+            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-10 lg:py-16 p-4 sm:p-6 lg:p-8">
+              <div className="bg-indigo-500/10 rounded-full p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6">
+                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-indigo-400" />
               </div>
-              <h2 className={`text-2xl font-medium mb-3 ${themeClasses.text}`}>提出完了</h2>
-              <p className={`text-center mb-6 ${themeClasses.mutedText}`}>
+              <h2 className={`text-xl sm:text-2xl lg:text-4xl font-medium mb-3 sm:mb-4 ${themeClasses.text}`}>提出完了</h2>
+              <p className={`text-center mb-4 sm:mb-6 lg:mb-8 text-sm sm:text-base lg:text-xl ${themeClasses.mutedText}`}>
                 素材の提出を受け付けました。ありがとうございます！
               </p>
 
-              <div className="flex flex-col gap-2 w-full max-w-[300px]">
-                <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
-                  <p className={`text-xs ${themeClasses.mutedText}`}>提出者</p>
-                  <p className={`${themeClasses.text}`}>{name}</p>
+              <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-[280px] sm:max-w-[350px] lg:max-w-[450px]">
+                <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg`}>
+                  <p className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText}`}>提出者</p>
+                  <p className={`text-sm sm:text-base lg:text-xl ${themeClasses.text}`}>{name}</p>
                 </div>
                 {email && (
-                  <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
-                    <p className={`text-xs ${themeClasses.mutedText}`}>メールアドレス</p>
-                    <p className={`${themeClasses.text}`}>{email}</p>
+                  <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg`}>
+                    <p className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText}`}>メールアドレス</p>
+                    <p className={`text-sm sm:text-base lg:text-xl ${themeClasses.text}`}>{email}</p>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-2">
-                  <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
-                    <p className={`text-xs ${themeClasses.mutedText} flex items-center gap-1`}>
-                      <Calendar className="h-3 w-3" />
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg`}>
+                    <p className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText} flex items-center gap-1`}>
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
                       提出日
                     </p>
-                    <p className={`${themeClasses.text}`}>{submissionDate}</p>
+                    <p className={`text-xs sm:text-sm lg:text-lg ${themeClasses.text}`}>{submissionDate}</p>
                   </div>
-                  <div className={`${themeClasses.logCard} p-3 rounded-lg`}>
-                    <p className={`text-xs ${themeClasses.mutedText} flex items-center gap-1`}>
-                      <Clock className="h-3 w-3" />
+                  <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg`}>
+                    <p className={`text-xs sm:text-sm lg:text-base ${themeClasses.mutedText} flex items-center gap-1`}>
+                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
                       時間
                     </p>
-                    <p className={`${themeClasses.text}`}>{submissionTime}</p>
+                    <p className={`text-xs sm:text-sm lg:text-lg ${themeClasses.text}`}>{submissionTime}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
-            <div className="flex justify-center mt-6">
+            <div className="flex justify-center mt-4 sm:mt-6 pb-6">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setViewingLogs(true)}
-                className={`${themeClasses.logButton} border-dashed`}
+                className={`${themeClasses.logButton} border-dashed text-sm sm:text-base lg:text-lg py-2 px-4 sm:py-3 sm:px-6`}
               >
-                <History className="h-4 w-4 mr-1" /> 履歴を確認
+                <History className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> 履歴を確認
               </Button>
             </div>
           </Card>
