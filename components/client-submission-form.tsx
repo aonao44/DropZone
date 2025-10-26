@@ -20,7 +20,8 @@ import { generateRandomSlug } from "@/lib/utils";
 import { SubmissionFile } from "@/lib/types";
 import { createClient } from "@supabase/supabase-js"; // ←こっちを復活
 
-import { useUser } from "@clerk/nextjs"; // Clerkを使っている場合
+// Clerk認証は開発中のため一時的に無効化
+// import { useUser } from "@clerk/nextjs";
 
 type ProjectInfo = {
   title: string;
