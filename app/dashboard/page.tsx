@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Copy, Eye, Inbox, Plus } from "lucide-react";
+import { Copy, Eye, Inbox, Plus, Home } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { DropZoneLogo } from "@/components/dropzone-logo";
 
 // サンプルデータ（実際の実装では API から取得）
 const sampleProjects = [
@@ -62,77 +63,101 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-900 text-white">
-      <header className="sticky top-0 z-10 border-b border-border/40 bg-gray-900/95 backdrop-blur supports-[backdrop-filter]:bg-gray-900/60">
-        <div className="container flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold tracking-tight">DropZone</h1>
+    <div className="min-h-screen bg-white">
+      {/* ヘッダー */}
+      <header className="border-b border-gray-200">
+        <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <DropZoneLogo isDark={false} />
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => router.push("/")}
+                variant="outline"
+                className="border-2 border-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                ホーム
+              </Button>
+              <Button
+                onClick={() => router.push("/dashboard/new")}
+                className="bg-blue-500 text-white font-semibold px-6 py-3 rounded-xl shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                新規プロジェクト
+              </Button>
+            </div>
           </div>
-          <Button onClick={() => router.push("/new")} className="bg-purple-600 hover:bg-purple-700">
-            <Plus className="mr-2 h-4 w-4" />
-            新規プロジェクト
-          </Button>
         </div>
       </header>
-      <main className="flex-1 py-8">
-        <div className="container">
+
+      {/* メインコンテンツ */}
+      <main className="py-8 sm:py-12">
+        <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold tracking-tight">プロジェクト一覧</h2>
-            <p className="text-muted-foreground">素材提出の管理と確認ができます</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">プロジェクト一覧</h1>
+            <p className="text-base text-gray-700 leading-relaxed">
+              素材提出の管理と確認ができます
+            </p>
           </div>
 
           {projects.length === 0 ? (
-            <div className="flex h-[400px] flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 p-8 text-center">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted/30">
-                <Inbox className="h-10 w-10 text-muted-foreground" />
+            <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-12 text-center">
+              <div className="w-20 h-20 mx-auto bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                <Inbox className="h-10 w-10 text-gray-400" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold">まだプロジェクトがありません</h3>
-              <p className="mt-2 text-muted-foreground">
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                まだプロジェクトがありません
+              </h3>
+              <p className="text-base text-gray-700 mb-6 leading-relaxed">
                 「新規プロジェクト」ボタンをクリックして、最初のプロジェクトを作成しましょう
               </p>
-              <Button onClick={() => router.push("/new")} className="mt-6 bg-purple-600 hover:bg-purple-700">
+              <Button
+                onClick={() => router.push("/dashboard/new")}
+                className="bg-blue-500 text-white font-semibold px-8 py-4 rounded-xl shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200"
+              >
                 <Plus className="mr-2 h-4 w-4" />
                 新規プロジェクト
               </Button>
             </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {projects.map((project) => (
                 <Card
                   key={project.id}
-                  className="overflow-hidden border-border/50 bg-gray-800/50 transition-all hover:shadow-md"
+                  className="bg-white border border-gray-300 rounded-2xl shadow-md hover:shadow-lg hover:border-gray-400 transition-all duration-200"
                 >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="line-clamp-1 text-white">{project.name}</CardTitle>
-                    <CardDescription>作成日: {formatDate(project.createdAt)}</CardDescription>
+                  <CardHeader className="pb-3 space-y-2">
+                    <CardTitle className="text-xl font-semibold text-gray-900 line-clamp-2">
+                      {project.name}
+                    </CardTitle>
+                    <CardDescription className="text-sm text-gray-600">
+                      作成日: {formatDate(project.createdAt)}
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent className="pb-3">
+                  <CardContent className="pb-4">
                     <div className="flex items-center">
                       <div
-                        className={`mr-2 h-2.5 w-2.5 rounded-full ${
-                          project.hasSubmission ? "bg-green-500" : "bg-amber-500"
+                        className={`w-3 h-3 rounded-full mr-2 ${
+                          project.hasSubmission ? "bg-green-600" : "bg-amber-600"
                         }`}
                       ></div>
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-sm font-medium text-gray-700">
                         {project.hasSubmission ? "提出あり" : "未提出"}
                       </span>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between gap-2 pt-0">
+                  <CardFooter className="flex flex-col gap-2 pt-0">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-gray-600 bg-gray-700 hover:bg-gray-600 text-gray-200"
                       onClick={() => handleCopyFormUrl(project.formUrl)}
+                      variant="outline"
+                      className="w-full border-2 border-gray-300 text-gray-700 font-semibold px-4 py-3 rounded-xl shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200"
                     >
                       <Copy className="mr-2 h-4 w-4" />
                       フォームURLをコピー
                     </Button>
                     <Button
-                      variant="secondary"
-                      size="sm"
-                      className="w-full bg-purple-600/30 text-purple-300 hover:bg-purple-600/40"
                       asChild
+                      className="w-full bg-blue-500 text-white font-semibold px-4 py-3 rounded-xl shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200"
                     >
                       <Link href={`/project/${project.slug}/view`}>
                         <Eye className="mr-2 h-4 w-4" />
