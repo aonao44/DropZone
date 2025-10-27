@@ -25,8 +25,8 @@ export async function POST(request: Request) {
       .insert({
         slug: projectSlug,
         title: body.title,
-        name: body.name,
-        email: body.email,
+        client_name: body.name,
+        client_email: body.email,
       })
       .select("id, slug")
       .single();
