@@ -170,13 +170,63 @@ export function ClientSubmissionForm({
     },
   });
 
+  // 提出データを作成する関数
+  const handleCreateSubmission = async (uploadedFiles?: any[]) => {
+    try {
+      // slugが空でないことを確認
+      const slug = submissionSlug || generateRandomSlug();
+
+      // 提出データの準備
+      const submissionData = {
+        name,
+        email,
+        slug: slug,
+        projectSlug: slug,
+        submittedAt: new Date().toISOString(),
+        files: uploadedFiles
+          ? uploadedFiles.map((file: any) => ({
+              name: file.fileName || file.name,
+              url: file.ufsUrl || file.fileUrl || file.url,
+            }))
+          : [],
+        figmaLinks: figmaUrl ? [figmaUrl] : [],
+      };
+
+      // Supabaseに保存
+      const response = await fetch("/api/submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(submissionData),
+      });
+
+      if (response.ok) {
+        // 送信完了後、最新のファイル数を再取得
+        await fetchExistingFileCount(slug);
+        // ファイルリストをクリア
+        setLogoFiles([]);
+        // 提出完了状態に設定
+        setIsSubmitted(true);
+        setIsUploading(false);
+      } else {
+        const errorData = await response.json();
+        console.error("Failed to create submission:", errorData);
+        setIsUploading(false);
+      }
+    } catch (error) {
+      console.error("Error in submission creation:", error);
+      setIsUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // 送信前にファイル数チェック
     if (existingFileCount + logoFiles.length > 10) {
       alert("累計10ファイルを超えるため、送信できません。");
-      return; // ここで送信中止！
+      return;
     }
 
     setIsUploading(true);
@@ -197,54 +247,30 @@ export function ClientSubmissionForm({
     setSubmissionTime(formattedTime);
 
     try {
-      // slugが空でないことを確認
-      const slug = submissionSlug || generateRandomSlug();
-
       // Upload files to UploadThing if they exist
-      // 並列アップロード用の関数を追加
-      const uploadFilesInBatches = async (files: File[], batchSize = 3) => {
-        const results = [];
-        for (let i = 0; i < files.length; i += batchSize) {
-          const batch = files.slice(i, i + batchSize);
-          const batchResults = await startUpload(batch);
-          if (batchResults) {
-            results.push(...batchResults);
-          }
-        }
-        return results;
-      };
-      
-      // handleSubmit内で使用
       if (logoFiles.length > 0) {
-        const uploadedFiles = await uploadFilesInBatches(logoFiles, 3);
-        await handleCreateSubmission(uploadedFiles);
-      }
-      
-      // If no files, just create a submission record
-      const response = await fetch("/api/submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          projectSlug: slug,
-          slug: slug,
-          submittedAt: new Date().toISOString(),
-          files: [],
-          figmaLinks: figmaUrl ? [figmaUrl] : [],
-        }),
-      });
+        // 並列アップロード用の関数
+        const uploadFilesInBatches = async (files: File[], batchSize = 3) => {
+          const results = [];
+          for (let i = 0; i < files.length; i += batchSize) {
+            const batch = files.slice(i, i + batchSize);
+            const batchResults = await startUpload(batch);
+            if (batchResults) {
+              results.push(...batchResults);
+            }
+          }
+          return results;
+        };
 
-      if (response.ok) {
-        // 送信完了後、最新のファイル数を再取得
-        await fetchExistingFileCount(slug);
-        // 提出完了状態に設定
-        setIsSubmitted(true);
+        const uploadedFiles = await uploadFilesInBatches(logoFiles, 3);
+        if (uploadedFiles && uploadedFiles.length > 0) {
+          await handleCreateSubmission(uploadedFiles);
+        } else {
+          setIsUploading(false);
+        }
       } else {
-        console.error("Failed to create submission:", await response.text());
-        setIsUploading(false);
+        // If no files, just create a submission record
+        await handleCreateSubmission([]);
       }
     } catch (error) {
       console.error("Error in form submission:", error);
@@ -537,52 +563,3 @@ export function ClientSubmissionForm({
     </AnimatePresence>
   );
 }
-
-// Add the handleCreateSubmission function here (around line 100)
-const handleCreateSubmission = async (uploadedFiles?: any[]) => {
-  try {
-    // 提出データの準備
-    const submissionData = {
-      name,
-      email,
-      slug: submissionSlug, // Use submissionSlug state variable
-      projectSlug: submissionSlug, // project_slugとしても同じslugを使用
-      submittedAt: new Date().toISOString(),
-      files: uploadedFiles
-        ? uploadedFiles.map((file: any) => ({
-            name: file.fileName || file.name,
-            url: file.ufsUrl || file.fileUrl || file.url, // v9互換性対応
-          }))
-        : [],
-      figmaLinks: figmaUrl ? [figmaUrl] : [],
-    };
-
-    // Supabaseに保存
-    const response = await fetch("/api/submissions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(submissionData),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      // 正常に保存された場合は成功状態に設定
-      setLogoFiles([]);
-      setIsSubmitted(true);
-      setIsUploading(false);
-      // 送信完了後、最新のファイル数を再取得
-      await fetchExistingFileCount(submissionSlug);
-    } else {
-      // エラー処理
-      console.error("Failed to create submission:", data.error);
-      setIsUploading(false);
-    }
-  } catch (error) {
-    console.error("Error in submission creation:", error);
-    setIsUploading(false);
-  }
-};
-// Remove the extra closing brace that was at line 587
