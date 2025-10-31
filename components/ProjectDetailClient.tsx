@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Copy, Download, Calendar, Clock, FileIcon, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Copy, Calendar, Clock, FileIcon, Link as LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DropZoneLogo } from "@/components/dropzone-logo";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { DownloadButton } from "@/components/DownloadButton";
 
 type Submission = {
   id: string;
@@ -225,21 +226,13 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                                     </div>
                                   </div>
                                   {file.url && (
-                                    <Button
-                                      asChild
+                                    <DownloadButton
+                                      url={file.url}
+                                      fileName={file.name}
+                                      variant="default"
                                       size="sm"
                                       className="w-full mt-2 bg-blue-500 text-white hover:bg-blue-600"
-                                    >
-                                      <a
-                                        href={file.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        download
-                                      >
-                                        <Download className="mr-2 h-4 w-4" />
-                                        ダウンロード
-                                      </a>
-                                    </Button>
+                                    />
                                   )}
                                 </div>
                               ))}

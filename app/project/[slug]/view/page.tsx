@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProjectDetailClient } from "@/components/ProjectDetailClient";
@@ -45,7 +45,7 @@ export default async function ProjectViewPage({
   const { data: submissions, error: submissionsError } = await supabase
     .from("submissions")
     .select("id, name, email, files, figma_links, submitted_at, created_at")
-    .eq("project_id", project.id)
+    .eq("project_slug", project.slug)
     .order("created_at", { ascending: false });
 
   if (submissionsError) {

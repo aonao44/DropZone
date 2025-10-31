@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Clock, Download, Eye, ChevronRight, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
 import { DownloadButton } from "@/components/DownloadButton";
@@ -30,35 +29,35 @@ interface SubmissionLogsProps {
 export function SubmissionLogs({ isDark = false, projectSlug }: SubmissionLogsProps) {
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
   const [logs, setLogs] = useState<SubmissionLog[]>([]);
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-  );
 
   useEffect(() => {
     if (!projectSlug) return;
     const fetchLogs = async () => {
-      const { data, error } = await supabase
-        .from("submissions")
-        .select("id, submitted_at, name, files, figma_links, slug, project_slug")
-        .eq("slug", projectSlug)
-        .order("submitted_at", { ascending: false });
-      if (error) {
+      try {
+        const response = await fetch(`/api/submissions/${projectSlug}`);
+        if (!response.ok) {
+          console.error("Error fetching submissions:", await response.text());
+          setLogs([]);
+          return;
+        }
+        const { data } = await response.json();
+        console.log("Fetched submissions data:", data);
+        setLogs(
+          (data || []).map((item: any) => ({
+            id: item.id,
+            date: new Date(item.submitted_at).toLocaleDateString("ja-JP"),
+            time: new Date(item.submitted_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
+            name: item.name,
+            assetsCount: Array.isArray(item.files) ? item.files.length : 0,
+            figmaLinksCount: Array.isArray(item.figma_links) ? item.figma_links.length : 0,
+            viewUrl: `/project/${projectSlug}/view`,
+            files: item.files || [],
+          }))
+        );
+      } catch (error) {
+        console.error("Error in fetchLogs:", error);
         setLogs([]);
-        return;
       }
-      setLogs(
-        (data || []).map((item: any) => ({
-          id: item.id,
-          date: new Date(item.submitted_at).toLocaleDateString("ja-JP"),
-          time: new Date(item.submitted_at).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }),
-          name: item.name,
-          assetsCount: Array.isArray(item.files) ? item.files.length : 0,
-          figmaLinksCount: Array.isArray(item.figma_links) ? item.figma_links.length : 0,
-          viewUrl: `/project/${projectSlug}/view`,
-          files: item.files || [],
-        }))
-      );
     };
     fetchLogs();
   }, [projectSlug]);

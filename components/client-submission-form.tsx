@@ -53,9 +53,6 @@ export function ClientSubmissionForm({
   const [showFileLimitError, setShowFileLimitError] = useState(false);
   const isDarkMode = true; // 常にダークモード
 
-  // slugを状態として保持
-  const [submissionSlug, setSubmissionSlug] = useState<string>("");
-
   // Initialize Supabase client (client-side)
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
@@ -85,17 +82,12 @@ export function ClientSubmissionForm({
     }
   };
 
-  // コンポーネントのマウント時とprojectSlugの変更時にslugを設定
+  // コンポーネントのマウント時とprojectSlugの変更時に既存ファイル数を取得
   useEffect(() => {
-    // 追加提出の場合（projectSlugが指定されている場合）
     if (projectSlug && projectSlug.trim() !== "") {
-      setSubmissionSlug(projectSlug);
       // 既存ファイル数を取得
       fetchExistingFileCount(projectSlug);
-    }
-    // 新規提出の場合（projectSlugが指定されていない場合）
-    else {
-      setSubmissionSlug(generateRandomSlug());
+    } else {
       setExistingFileCount(0);
     }
   }, [projectSlug]);
@@ -127,7 +119,8 @@ export function ClientSubmissionForm({
 
       if (res && res.length > 0) {
         // slgが空でないことを確認
-        const slug = submissionSlug || generateRandomSlug();
+        // 提出ごとに新しいslugを生成
+        const newSubmissionSlug = generateRandomSlug();
 
         // Create submission record in Supabase
         const response = await fetch("/api/submissions", {
@@ -138,8 +131,8 @@ export function ClientSubmissionForm({
           body: JSON.stringify({
             name,
             email,
-            projectSlug: slug,
-            slug: slug,
+            projectSlug: projectSlug, // プロジェクトのslug（固定値）
+            slug: newSubmissionSlug,   // 提出のslug（毎回新規生成）
             submittedAt: new Date().toISOString(),
             files: res.map((file: any) => ({
               name: file.fileName || file.name,
@@ -151,13 +144,15 @@ export function ClientSubmissionForm({
 
         if (response.ok) {
           // 送信完了後、最新のファイル数を再取得
-          await fetchExistingFileCount(slug);
+          await fetchExistingFileCount(projectSlug);
           // ファイルリストをクリア
           setLogoFiles([]);
           // 提出完了状態に設定
           setIsSubmitted(true);
         } else {
-          console.error("Failed to create submission:", await response.text());
+          const errorData = await response.json().catch(() => ({ error: "不明なエラーが発生しました" }));
+          console.error("Failed to create submission:", errorData);
+          alert(`提出に失敗しました: ${errorData.error || "不明なエラー"}`);
           setIsUploading(false);
         }
       } else {
@@ -173,15 +168,15 @@ export function ClientSubmissionForm({
   // 提出データを作成する関数
   const handleCreateSubmission = async (uploadedFiles?: any[]) => {
     try {
-      // slugが空でないことを確認
-      const slug = submissionSlug || generateRandomSlug();
+      // 提出ごとに新しいslugを生成
+      const newSubmissionSlug = generateRandomSlug();
 
       // 提出データの準備
       const submissionData = {
         name,
         email,
-        slug: slug,
-        projectSlug: slug,
+        slug: newSubmissionSlug,     // 提出のslug（毎回新規生成）
+        projectSlug: projectSlug,    // プロジェクトのslug（固定値）
         submittedAt: new Date().toISOString(),
         files: uploadedFiles
           ? uploadedFiles.map((file: any) => ({
@@ -203,19 +198,21 @@ export function ClientSubmissionForm({
 
       if (response.ok) {
         // 送信完了後、最新のファイル数を再取得
-        await fetchExistingFileCount(slug);
+        await fetchExistingFileCount(projectSlug);
         // ファイルリストをクリア
         setLogoFiles([]);
         // 提出完了状態に設定
         setIsSubmitted(true);
         setIsUploading(false);
       } else {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({ error: "不明なエラーが発生しました" }));
         console.error("Failed to create submission:", errorData);
+        alert(`提出に失敗しました: ${errorData.error || "不明なエラー"}`);
         setIsUploading(false);
       }
     } catch (error) {
       console.error("Error in submission creation:", error);
+      alert("提出中にエラーが発生しました。もう一度お試しください。");
       setIsUploading(false);
     }
   };
@@ -324,7 +321,7 @@ export function ClientSubmissionForm({
             <CardDescription className="text-center text-sm sm:text-base lg:text-lg">過去の素材提出履歴を確認できます</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 lg:p-8">
-            <SubmissionLogs isDark={true} projectSlug={submissionSlug} />
+            <SubmissionLogs isDark={true} projectSlug={projectSlug} />
           </CardContent>
         </Card>
       </motion.div>

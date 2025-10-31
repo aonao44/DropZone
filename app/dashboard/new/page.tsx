@@ -35,7 +35,7 @@ export default function NewProjectPage() {
 
       if (response.ok) {
         const data = await response.json();
-        router.push(`/project/${data.slug}/submit`);
+        router.push(`/project/${data.slug}/created`);
       } else {
         console.error("プロジェクト作成に失敗しました");
         setIsSubmitting(false);

@@ -343,3 +343,141 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 - `.cursor/rules/dev-rules/db-blueprint.mdc` - データベース設計ルール
 
 **重要**: 実装前に必ず該当するドキュメントを確認し、仕様に従って開発してください。
+
+## トラブルシューティング・ナレッジベース
+
+### Supabase Row Level Security (RLS) の扱い
+
+#### 問題: 提出履歴や詳細データが取得できない
+
+**症状**:
+- ダッシュボードで提出データが表示されない（`data: []`）
+- クライアントコンポーネントからの Supabase クエリが空配列を返す
+
+**原因**:
+- Supabase の RLS（Row Level Security）ポリシーにより、匿名ユーザー（`ANON_KEY`）からのアクセスが制限されている
+- `@/lib/supabase/server` は `ANON_KEY` を使用するため、RLS の制限を受ける
+
+**解決策**:
+1. **サーバーサイドでの対応**: `@/utils/supabase/server` を使用
+   - `SERVICE_ROLE_KEY` を使用して RLS をバイパス
+   - Server Components や API Routes で使用
+
+2. **API Route パターンの採用**:
+   ```typescript
+   // app/api/submissions/[projectSlug]/route.ts
+   import { createClient } from "@/utils/supabase/server";
+
+   export async function GET(request, { params }) {
+     const supabase = createClient(cookies());
+     const { data, error } = await supabase
+       .from("submissions")
+       .select("*")
+       .eq("project_slug", params.projectSlug);
+     return NextResponse.json({ data });
+   }
+   ```
+
+3. **クライアントコンポーネントからの利用**:
+   ```typescript
+   // Client Component
+   const response = await fetch(`/api/submissions/${projectSlug}`);
+   const { data } = await response.json();
+   ```
+
+**重要な区別**:
+- `@/lib/supabase/server` → `ANON_KEY` 使用、RLS 適用対象
+- `@/utils/supabase/server` → `SERVICE_ROLE_KEY` 使用、RLS バイパス（サーバーサイドのみ）
+
+#### クエリ時のフィールド名に注意
+
+**症状**: データベースにレコードは存在するのにクエリ結果が空
+
+**原因**:
+- データベーススキーマと異なるフィールド名でクエリしている
+- 例: `project_id` でクエリすべきところを `slug` でクエリ
+
+**解決策**:
+```typescript
+// ❌ 間違い
+.eq("project_id", project.id)
+
+// ✅ 正しい（スキーマに project_slug フィールドがある場合）
+.eq("project_slug", project.slug)
+```
+
+**デバッグ方法**:
+1. Supabase のテーブルスキーマを確認
+2. `console.log` でクエリパラメータを出力
+3. Supabase ダッシュボードで SQL を直接実行して確認
+
+### ファイルダウンロード機能の実装
+
+#### 問題: ダウンロードボタンを押すとブラウザで画像が表示されてしまう
+
+**症状**:
+- ダウンロードボタンをクリックすると、ファイルがダウンロードされずブラウザで開く
+- 特に画像ファイル（PNG、JPG など）で発生しやすい
+
+**原因**:
+- 通常の `<a>` タグと `download` 属性だけでは、CORS 制限のある外部 URL（UploadThing など）からのダウンロードが機能しない
+- ブラウザはファイルをダウンロードする代わりに表示してしまう
+
+**解決策**: Blob 方式のダウンロード実装
+
+```typescript
+// components/DownloadButton.tsx
+const handleDownload = async () => {
+  // 1. ファイルを fetch して blob として取得
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  // 2. blob URL を作成
+  const blobUrl = window.URL.createObjectURL(blob);
+
+  // 3. <a> タグを動的に作成してクリック
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+
+  // 4. クリーンアップ
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
+};
+```
+
+**使用例**:
+```typescript
+// ❌ 間違い - CORS エラーまたはブラウザで開く
+<a href={file.url} download>ダウンロード</a>
+
+// ✅ 正しい - DownloadButton コンポーネントを使用
+<DownloadButton url={file.url} fileName={file.name} />
+```
+
+**注意事項**:
+- ダウンロード後にファイルが自動で開くかどうかは、ブラウザや OS の設定に依存
+- Web アプリケーション側ではダウンロード後の動作（ファイルを開くかどうか）を制御できない
+- これは Web 標準の制限であり、回避不可能
+
+**関連コンポーネント**:
+- `components/DownloadButton.tsx` - 単一ファイルのダウンロード
+- `components/ProjectDetailClient.tsx` - プロジェクト詳細画面でのダウンロード
+- `components/submission-logs.tsx` - 提出履歴でのダウンロード
+
+### Next.js キャッシュ問題
+
+**症状**:
+- コードを修正したのにコンパイルエラーが消えない
+- "Expected a semicolon" などの誤ったエラーが表示される
+
+**原因**:
+- `.next` ディレクトリのキャッシュが破損
+
+**解決策**:
+```bash
+rm -rf .next
+npm run dev
+```
