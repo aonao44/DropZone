@@ -1,37 +1,29 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-// Clerk認証は開発中のため一時的にコメントアウト
-// import { ClerkProvider } from "@clerk/nextjs";
+import type React from "react"
+import type { Metadata } from "next"
+import { Geist, Geist_Mono } from "next/font/google"
+import { Toaster } from "@/components/ui/toaster"
+import "./globals.css"
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+const _geist = Geist({ subsets: ["latin"] })
+const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-// ページのメタデータ（SEO）
 export const metadata: Metadata = {
-  title: "DropZone",
-  description: "ファイル提出SaaS",
-};
+  title: "DropZone - 素材回収、もう催促しない。",
+  description: "デザイン制作案件の素材提出フォームSaaS",
+  generator: "v0.app",
+}
 
-// ✅ export default はこれ1つだけ！
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
-    // Clerk認証は開発中のため一時的にコメントアウト
-    // <ClerkProvider>
-      <html lang="ja">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
-      </html>
-    // </ClerkProvider>
-  );
+    <html lang="ja">
+      <body className={`font-sans antialiased`}>
+        {children}
+        <Toaster />
+      </body>
+    </html>
+  )
 }

@@ -1,223 +1,201 @@
-"use client";
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Header } from "@/components/header"
+import { Footer } from "@/components/footer"
+import { AnimatedBackground } from "@/components/animated-background"
+import { CheckCircle2, Clock, TrendingDown, Zap, Shield, BarChart3 } from "lucide-react"
 
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { DropZoneLogo } from "@/components/dropzone-logo";
-import { Upload, FolderOpen, ArrowRight, Clock } from "lucide-react";
-
-export default function LandingPage() {
-  const router = useRouter();
-
-  const handleGetStarted = () => {
-    router.push("/dashboard");
-  };
-
+export default function HomePage() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* ヘッダー */}
-      <header className="border-b border-border">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
-          <div className="flex items-center justify-between">
-            <DropZoneLogo isDark={true} />
-            <Button
-              onClick={handleGetStarted}
-              className="bg-primary text-primary-foreground font-semibold px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 rounded-xl shadow-md hover:bg-primary/90 transition-all duration-200 text-sm sm:text-base lg:text-lg"
-            >
-              はじめる
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col">
+      <AnimatedBackground />
 
-      {/* ヒーローセクション */}
-      <section className="py-12 sm:py-16 lg:py-24">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-6 sm:space-y-8 lg:space-y-10">
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground leading-tight">
-              ファイル提出、<br className="sm:hidden" />もう迷わない。
-            </h1>
-            <p className="text-lg sm:text-xl lg:text-3xl text-muted-foreground leading-relaxed max-w-5xl mx-auto">
-              デザイナーとクライアント間での素材提出をスムーズに。
+      <Header />
+
+      <main className="flex-1 relative z-10">
+        {/* Hero Section */}
+        <section className="container py-24 md:py-32">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary">
+              <Zap className="h-4 w-4" />
+              素材回収を自動化
+            </div>
+            <h1 className="mb-6 text-5xl font-bold tracking-tight text-balance md:text-6xl lg:text-7xl">
+              素材回収、
               <br />
-              Slackやメールで「流れちゃった」を、今日で終わりにしましょう。
+              <span className="bg-gradient-primary bg-clip-text text-transparent">もう催促しない。</span>
+            </h1>
+            <p className="mb-10 text-lg text-muted-foreground leading-relaxed text-pretty md:text-xl">
+              デザイン制作案件の素材提出を、スマートに管理。
+              <br />
+              クライアントへの催促メールは過去のものに。
             </p>
-            <div className="pt-4 sm:pt-6">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button
-                onClick={handleGetStarted}
-                className="bg-primary text-primary-foreground font-semibold px-6 py-3 sm:px-8 sm:py-4 lg:px-12 lg:py-6 rounded-xl shadow-md hover:bg-primary/90 glow-blue transition-all duration-200 text-base sm:text-lg lg:text-2xl inline-flex items-center gap-2 sm:gap-3"
+                size="lg"
+                className="gradient-primary text-base font-semibold glow-blue-sm hover:glow-blue"
+                asChild
               >
-                無料ではじめる
-                <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
+                <Link href="/dashboard">はじめる</Link>
+              </Button>
+              <Button size="lg" variant="outline" className="text-base bg-transparent" asChild>
+                <Link href="#demo">デモを見る</Link>
               </Button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 問題提起セクション */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-surface">
-        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 shadow-md">
-            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-semibold text-foreground mb-6 sm:mb-8 lg:mb-10 text-center">
-              こんな経験、ありませんか？
-            </h2>
-            <div className="space-y-4 sm:space-y-5 lg:space-y-6">
-              <div className="flex items-start gap-3 sm:gap-4 lg:gap-5">
-                <div className="w-3 h-3 sm:w-3 sm:h-3 lg:w-4 lg:h-4 rounded-full bg-primary mt-2 flex-shrink-0 glow-blue-sm"></div>
-                <p className="text-base sm:text-lg lg:text-2xl text-muted-foreground leading-relaxed">
-                  Slackでクライアントから送られてきた素材が、メッセージに流されて見つからない
-                </p>
+        {/* Features Section */}
+        <section className="container py-24">
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-16 text-center">
+              <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">なぜDropZoneなのか</h2>
+              <p className="text-lg text-muted-foreground">制作フローを劇的に改善する3つの価値</p>
+            </div>
+
+            <div className="grid gap-8 md:grid-cols-3">
+              <Card className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm">
+                <CardContent className="p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <CheckCircle2 className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="mb-3 text-xl font-semibold">漏れゼロ</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    必須項目の設定とバリデーションで、提出漏れを防止。推奨形式・サイズも事前に指定できます。
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm">
+                <CardContent className="p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent/10">
+                    <Clock className="h-6 w-6 text-accent" />
+                  </div>
+                  <h3 className="mb-3 text-xl font-semibold">催促ゼロ</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    自動リマインド機能で、期限前に通知。あなたが催促メールを送る必要はありません。
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm">
+                <CardContent className="p-6">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-success/10">
+                    <TrendingDown className="h-6 w-6 text-success" />
+                  </div>
+                  <h3 className="mb-3 text-xl font-semibold">管理コスト最小</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    提出状況を一目で確認。不足素材の追跡も簡単。プロジェクト管理の時間を大幅削減。
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* Additional Features */}
+        <section className="container py-24">
+          <div className="mx-auto max-w-5xl">
+            <div className="grid gap-12 md:grid-cols-2">
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-lg font-semibold">セキュアな素材管理</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      アップロードされた素材は暗号化して保存。アクセス権限も細かく設定可能です。
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10">
+                    <BarChart3 className="h-5 w-5 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="mb-2 text-lg font-semibold">進捗の可視化</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      プロジェクトごとの提出率をリアルタイムで確認。チーム全体の状況を把握できます。
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-start gap-3 sm:gap-4 lg:gap-5">
-                <div className="w-3 h-3 sm:w-3 sm:h-3 lg:w-4 lg:h-4 rounded-full bg-primary mt-2 flex-shrink-0 glow-blue-sm"></div>
-                <p className="text-base sm:text-lg lg:text-2xl text-muted-foreground leading-relaxed">
-                  メールの添付ファイルが複数のスレッドに分散して、どれが最新か分からない
-                </p>
-              </div>
-              <div className="flex items-start gap-3 sm:gap-4 lg:gap-5">
-                <div className="w-3 h-3 sm:w-3 sm:h-3 lg:w-4 lg:h-4 rounded-full bg-primary mt-2 flex-shrink-0 glow-blue-sm"></div>
-                <p className="text-base sm:text-lg lg:text-2xl text-muted-foreground leading-relaxed">
-                  クライアントに「どこに素材を送ればいいですか？」と何度も聞かれる
-                </p>
+
+              <div className="flex items-center justify-center">
+                <div className="relative h-80 w-full overflow-hidden rounded-2xl border border-border/40 bg-surface/50">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      <BarChart3 className="mx-auto mb-4 h-16 w-16 text-primary/40" />
+                      <p className="text-sm text-muted-foreground">デモプレビュー</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 特徴セクション */}
-      <section className="py-12 sm:py-16 lg:py-24">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-foreground text-center mb-10 sm:mb-12 lg:mb-16">
-            DropZoneの特徴
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            {/* 特徴1 */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md hover:shadow-lg hover:border-primary/50 transition-all duration-200">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary rounded-xl flex items-center justify-center mb-5 sm:mb-6 shadow-sm glow-blue-sm">
-                <Upload className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-primary-foreground" />
-              </div>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-3 sm:mb-4">
-                シンプルな提出フォーム
-              </h3>
-              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                専用URLを送るだけ。クライアントは迷わずファイルを提出できます。
-              </p>
-            </div>
+        {/* CTA Section */}
+        <section className="container py-24">
+          <div className="mx-auto max-w-3xl">
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 glow-blue-sm">
+              <CardContent className="p-12 text-center">
+                <h2 className="mb-4 text-3xl font-bold tracking-tight">今すぐ始めましょう</h2>
+                <p className="mb-8 text-lg text-muted-foreground">
+                  無料プランで全機能をお試しいただけます。クレジットカード不要。
+                </p>
+                <Button
+                  size="lg"
+                  className="gradient-primary text-base font-semibold glow-blue-sm hover:glow-blue"
+                  asChild
+                >
+                  <Link href="/dashboard">無料で始める</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
-            {/* 特徴2 */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md hover:shadow-lg hover:border-primary/50 transition-all duration-200">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary rounded-xl flex items-center justify-center mb-5 sm:mb-6 shadow-sm glow-blue-sm">
-                <FolderOpen className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-primary-foreground" />
-              </div>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-3 sm:mb-4">
-                一元管理
-              </h3>
-              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                全ての素材が一箇所に。もう探し回る必要はありません。
-              </p>
-            </div>
+        {/* FAQ Section */}
+        <section className="container py-24">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight">よくある質問</h2>
+            <div className="space-y-6">
+              <Card className="border-glow bg-card">
+                <CardContent className="p-6">
+                  <h3 className="mb-2 text-lg font-semibold">無料プランでどこまで使えますか？</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    無料プランでは3プロジェクトまで作成でき、1GBのストレージをご利用いただけます。基本的な機能は全て使用可能です。
+                  </p>
+                </CardContent>
+              </Card>
 
-            {/* 特徴3 */}
-            <div className="bg-card border border-border rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md hover:shadow-lg hover:border-primary/50 transition-all duration-200">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary rounded-xl flex items-center justify-center mb-5 sm:mb-6 shadow-sm glow-blue-sm">
-                <Clock className="w-7 h-7 sm:w-8 sm:h-8 lg:w-10 lg:h-10 text-primary-foreground" />
-              </div>
-              <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-3 sm:mb-4">
-                提出履歴を記録
-              </h3>
-              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                いつ、誰が、何を提出したか。全て記録されます。
-              </p>
+              <Card className="border-glow bg-card">
+                <CardContent className="p-6">
+                  <h3 className="mb-2 text-lg font-semibold">クライアントもアカウント登録が必要ですか？</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    いいえ、必要ありません。提出用URLを共有するだけで、クライアントは登録なしで素材をアップロードできます。
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-glow bg-card">
+                <CardContent className="p-6">
+                  <h3 className="mb-2 text-lg font-semibold">アップロードできるファイル形式は？</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    画像（PNG、JPG、SVG）、動画（MP4、MOV）、ドキュメント（PDF）など、一般的な形式に対応しています。
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* 使い方セクション */}
-      <section className="py-12 sm:py-16 lg:py-24 bg-surface">
-        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-semibold text-foreground text-center mb-10 sm:mb-12 lg:mb-16">
-            たった3ステップで開始
-          </h2>
-          <div className="space-y-8 sm:space-y-10 lg:space-y-12">
-            {/* ステップ1 */}
-            <div className="flex items-start gap-6 sm:gap-8 lg:gap-10">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-md glow-blue-sm">
-                <span className="text-primary-foreground font-bold text-2xl sm:text-3xl lg:text-4xl">1</span>
-              </div>
-              <div className="flex-1 pt-2 sm:pt-3">
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-2 sm:mb-3">
-                  プロジェクトを作成
-                </h3>
-                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                  プロジェクト名と依頼者情報を入力するだけ。数秒で専用URLが発行されます。
-                </p>
-              </div>
-            </div>
-
-            {/* ステップ2 */}
-            <div className="flex items-start gap-6 sm:gap-8 lg:gap-10">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-md glow-blue-sm">
-                <span className="text-primary-foreground font-bold text-2xl sm:text-3xl lg:text-4xl">2</span>
-              </div>
-              <div className="flex-1 pt-2 sm:pt-3">
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-2 sm:mb-3">
-                  URLをクライアントに共有
-                </h3>
-                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                  発行されたURLをクライアントに送信。あとはクライアントが素材をアップロードするのを待つだけ。
-                </p>
-              </div>
-            </div>
-
-            {/* ステップ3 */}
-            <div className="flex items-start gap-6 sm:gap-8 lg:gap-10">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-md glow-blue-sm">
-                <span className="text-primary-foreground font-bold text-2xl sm:text-3xl lg:text-4xl">3</span>
-              </div>
-              <div className="flex-1 pt-2 sm:pt-3">
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-foreground mb-2 sm:mb-3">
-                  素材を受け取る
-                </h3>
-                <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
-                  ダッシュボードで提出された素材を確認。一括ダウンロードも可能です。
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTAセクション */}
-      <section className="py-12 sm:py-16 lg:py-24">
-        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="gradient-primary rounded-2xl sm:rounded-3xl p-10 sm:p-12 lg:p-20 text-center shadow-lg glow-blue">
-            <h2 className="text-3xl sm:text-4xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 lg:mb-8">
-              今すぐDropZoneを始めましょう
-            </h2>
-            <p className="text-lg sm:text-xl lg:text-3xl text-white/90 mb-8 sm:mb-10 lg:mb-12 leading-relaxed">
-              無料で、すぐに使えます。クレジットカード不要。
-            </p>
-            <Button
-              onClick={handleGetStarted}
-              className="bg-white text-primary font-semibold px-6 py-3 sm:px-8 sm:py-4 lg:px-12 lg:py-6 rounded-xl shadow-md hover:bg-white/90 hover:shadow-lg transition-all duration-200 text-base sm:text-lg lg:text-2xl inline-flex items-center gap-2 sm:gap-3"
-            >
-              無料ではじめる
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* フッター */}
-      <footer className="border-t border-border py-6 sm:py-8 lg:py-10">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm sm:text-base lg:text-lg text-muted-foreground">
-            © 2025 DropZone. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <Footer />
     </div>
-  );
+  )
 }
