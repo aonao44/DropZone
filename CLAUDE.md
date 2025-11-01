@@ -26,6 +26,7 @@ Web/LP/デザイン制作のための提出フォーム生成 SaaS。提出要�
 ## 開発コマンド
 
 ### 基本コマンド
+
 ```bash
 # 開発サーバーの起動
 npm run dev
@@ -49,7 +50,7 @@ npm run lint
 - **Clerk** v6.12.12 - 認証・ユーザー管理（現在開発中、ミドルウェアは一時的に無効化中）
 - **Supabase** - データベース（@supabase/supabase-js, @supabase/ssr）
 - **UploadThing** v7.6.0 - ファイルアップロード
-- **Shadcn/ui + Radix UI** - UIコンポーネント
+- **Shadcn/ui + Radix UI** - UI コンポーネント
 
 ## アーキテクチャと設計原則
 
@@ -122,7 +123,7 @@ utils/                       # ヘルパー関数
 - **Tailwind CSS**: デスクトップファーストのアプローチ
   - ダッシュボード: デスクトップファーストを採用
   - ランディングページ: モバイルファースト、SEO 重視
-- **Shadcn/ui**: UIコンポーネントは重点的に利用
+- **Shadcn/ui**: UI コンポーネントは重点的に利用
 - **Radix UI**: アクセシブルなコンポーネント基盤
 
 ## 認証（Clerk）
@@ -225,29 +226,35 @@ UPLOADTHING_SECRET=
 ### 主要機能
 
 1. **プロジェクト作成（管理者）**
+
    - プロジェクト名、説明、提出期限（任意）、テンプレ選択（LP/コーポレート/バナー など 3 型）
    - フォーム URL の自動生成（`/s/:slug` または `/project/:slug/submit`）
 
 2. **提出フォーム生成（クライアント用）**
+
    - ログイン不要、ドラッグ＆ドロップ対応、スマホ最適
    - 提出項目: ロゴ画像、キービジュアル、Figma リンク、任意メモ
    - 入力ガイド（推奨サイズ・拡張子・背景/透過・Figma の共有設定）
 
 3. **自動バリデーション**
+
    - 画像: 拡張子（png/jpg/svg）、容量、最小 px、アスペクト比（任意）
    - Figma: URL 形式（`figma.com/file/` 含むか）、http/https 判定
    - 必須/任意の判定、未達項目は警告表示
 
 4. **提出完了＆再提出**
+
    - 完了画面（お礼＋不足があれば案内）
    - 再提出リンク（同一 URL で追送可／最新版が上書き、履歴は管理画面へ）
 
 5. **ダッシュボード（管理者）**
+
    - 提出一覧（ステータス: 未提出/一部不足/完了）
    - 各提出の詳細（ファイルプレビュー、ダウンロード、メモ、タイムスタンプ）
    - 不足項目のタグ付け（自動/手動）
 
 6. **リマインド（MVP はメール）**
+
    - 期限 3 日前/前日/当日の自動メール（ON/OFF）
    - 手動リマインド送信（自由文＋フォーム URL 差し込み）
 
@@ -269,6 +276,7 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 ## 開発ロードマップ（MVP）
 
 ### フェーズ 1: 基盤・認証・DB・アップロード（3–4 日）
+
 - 環境構築（Next.js 15, TS, Tailwind, shadcn/ui）
 - 認証（Clerk - 管理者のみ）
 - DB/スキーマ（Supabase + Prisma）
@@ -276,12 +284,14 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 - 共通 UI/レイアウト
 
 ### フェーズ 2: プロジェクト & 提出フォーム生成（2–3 日）
+
 - プロジェクト作成
 - 公開フォーム（ベース）
 - 提出完了
 - API/Server Actions
 
 ### フェーズ 3: 提出 & バリデーション（3–4 日）
+
 - ファイル検証（フロント+サーバ）
 - Figma リンク検証
 - 提出データ登録
@@ -289,35 +299,42 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 - イベント記録
 
 ### フェーズ 4: ダッシュボード & 管理機能（2–3 日）
+
 - 一覧表示
 - 詳細表示
 - フィルタ/ソート
 - 手動リマインド（下準備）
 
 ### フェーズ 5: 期限・リマインド（メール）（2 日）
+
 - リマインドスケジューラ
 - メール送信（Resend）
 - 手動リマインド
 - イベント/監査
 
 ### フェーズ 6: Pro 課金（ZIP/CSV/ブランド色）（3–4 日）
+
 - Stripe（サブスク）
 - ZIP 一括 DL（ジョブ化）
 - CSV エクスポート
 - ブランド色/ロゴ（軽ホワイトラベル）
 
 ### フェーズ 7: 公開ページ & マーケ（1–2 日）
+
 - トップ/料金ページ
 - 導入フロー
 - 計測
 
 ### フェーズ 8: 本番デプロイ＆品質確認（1 日）
+
 - 本番デプロイ（Vercel）
 - セキュリティ最終確認
 - スモークテスト
 - SLA/サポート動線
 
-## 参考資料
+## 開発順守　
+
+**重要**: 実装前に必ず該当するドキュメントを確認し、仕様に従って開発してください。
 
 ### .claude ディレクトリのドキュメント
 
@@ -330,19 +347,11 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 - **clerk_supabase_integration_document.md** - Clerk と Supabase の統合方法
 - **supabase_document.md** - Supabase の使用方法とベストプラクティス
 - **tailwind_document.md** - Tailwind CSS の使用ガイドライン
+- カスタム CSS は原則として書かない
 
-### Cursor ルール
+### コミットメッセージ
 
-開発時に遵守すべきルールは `.cursor/rules/` に格納されています：
-
-- `.cursorrules` - TypeScript + Next.js 開発ガイドライン
-- `.cursor/rules/globals.mdc` - グローバルルール
-- `.cursor/rules/dev-rules/techstack.mdc` - 技術スタック詳細
-- `.cursor/rules/dev-rules/nextjs.mdc` - Next.js ベストプラクティス
-- `.cursor/rules/dev-rules/clerk.mdc` - Clerk 認証実装ルール
-- `.cursor/rules/dev-rules/db-blueprint.mdc` - データベース設計ルール
-
-**重要**: 実装前に必ず該当するドキュメントを確認し、仕様に従って開発してください。
+- 一区切り着いた段階で git にコミットしたいので日本語でコミットメッセージを出してください
 
 ## トラブルシューティング・ナレッジベース
 
@@ -351,19 +360,24 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 #### 問題: 提出履歴や詳細データが取得できない
 
 **症状**:
+
 - ダッシュボードで提出データが表示されない（`data: []`）
 - クライアントコンポーネントからの Supabase クエリが空配列を返す
 
 **原因**:
+
 - Supabase の RLS（Row Level Security）ポリシーにより、匿名ユーザー（`ANON_KEY`）からのアクセスが制限されている
 - `@/lib/supabase/server` は `ANON_KEY` を使用するため、RLS の制限を受ける
 
 **解決策**:
+
 1. **サーバーサイドでの対応**: `@/utils/supabase/server` を使用
+
    - `SERVICE_ROLE_KEY` を使用して RLS をバイパス
    - Server Components や API Routes で使用
 
 2. **API Route パターンの採用**:
+
    ```typescript
    // app/api/submissions/[projectSlug]/route.ts
    import { createClient } from "@/utils/supabase/server";
@@ -386,6 +400,7 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
    ```
 
 **重要な区別**:
+
 - `@/lib/supabase/server` → `ANON_KEY` 使用、RLS 適用対象
 - `@/utils/supabase/server` → `SERVICE_ROLE_KEY` 使用、RLS バイパス（サーバーサイドのみ）
 
@@ -394,10 +409,12 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 **症状**: データベースにレコードは存在するのにクエリ結果が空
 
 **原因**:
+
 - データベーススキーマと異なるフィールド名でクエリしている
 - 例: `project_id` でクエリすべきところを `slug` でクエリ
 
 **解決策**:
+
 ```typescript
 // ❌ 間違い
 .eq("project_id", project.id)
@@ -407,6 +424,7 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 ```
 
 **デバッグ方法**:
+
 1. Supabase のテーブルスキーマを確認
 2. `console.log` でクエリパラメータを出力
 3. Supabase ダッシュボードで SQL を直接実行して確認
@@ -416,10 +434,12 @@ Plan(id, userId, tier[free/pro], stripeCustomerId, stripeSubId, status[active/ca
 #### 問題: ダウンロードボタンを押すとブラウザで画像が表示されてしまう
 
 **症状**:
+
 - ダウンロードボタンをクリックすると、ファイルがダウンロードされずブラウザで開く
 - 特に画像ファイル（PNG、JPG など）で発生しやすい
 
 **原因**:
+
 - 通常の `<a>` タグと `download` 属性だけでは、CORS 制限のある外部 URL（UploadThing など）からのダウンロードが機能しない
 - ブラウザはファイルをダウンロードする代わりに表示してしまう
 
@@ -449,6 +469,7 @@ const handleDownload = async () => {
 ```
 
 **使用例**:
+
 ```typescript
 // ❌ 間違い - CORS エラーまたはブラウザで開く
 <a href={file.url} download>ダウンロード</a>
@@ -458,11 +479,13 @@ const handleDownload = async () => {
 ```
 
 **注意事項**:
+
 - ダウンロード後にファイルが自動で開くかどうかは、ブラウザや OS の設定に依存
 - Web アプリケーション側ではダウンロード後の動作（ファイルを開くかどうか）を制御できない
 - これは Web 標準の制限であり、回避不可能
 
 **関連コンポーネント**:
+
 - `components/DownloadButton.tsx` - 単一ファイルのダウンロード
 - `components/ProjectDetailClient.tsx` - プロジェクト詳細画面でのダウンロード
 - `components/submission-logs.tsx` - 提出履歴でのダウンロード
@@ -470,13 +493,16 @@ const handleDownload = async () => {
 ### Next.js キャッシュ問題
 
 **症状**:
+
 - コードを修正したのにコンパイルエラーが消えない
 - "Expected a semicolon" などの誤ったエラーが表示される
 
 **原因**:
+
 - `.next` ディレクトリのキャッシュが破損
 
 **解決策**:
+
 ```bash
 rm -rf .next
 npm run dev

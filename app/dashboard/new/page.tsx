@@ -47,16 +47,16 @@ export default function NewProjectPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* ヘッダー */}
-      <header className="border-b border-gray-200">
+      <header className="border-b border-border">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
-            <DropZoneLogo isDark={false} />
+            <DropZoneLogo isDark={true} />
             <Button
               onClick={() => router.push("/dashboard")}
               variant="outline"
-              className="border-2 border-gray-300 text-gray-700 font-semibold px-3 py-2 sm:px-6 sm:py-3 lg:px-8 lg:py-4 rounded-xl shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200 text-sm sm:text-base lg:text-lg"
+              className="border-glow font-semibold px-3 py-2 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
             >
               <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               戻る
@@ -68,12 +68,12 @@ export default function NewProjectPage() {
       {/* メインコンテンツ */}
       <main className="py-8 sm:py-12 lg:py-16">
         <div className="max-w-xl sm:max-w-2xl lg:max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-white border-2 border-gray-300 rounded-2xl sm:rounded-3xl shadow-md">
+          <Card className="border-glow bg-card glow-blue-sm">
             <CardHeader className="space-y-2 sm:space-y-3 pb-4 sm:pb-6 p-4 sm:p-6 lg:p-8">
-              <CardTitle className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-900 text-center">
+              <CardTitle className="text-2xl sm:text-3xl lg:text-5xl font-bold text-center">
                 新規プロジェクト作成
               </CardTitle>
-              <CardDescription className="text-sm sm:text-base lg:text-xl text-gray-700 text-center leading-relaxed">
+              <CardDescription className="text-sm sm:text-base lg:text-xl text-center leading-relaxed">
                 プロジェクト情報を入力して、専用の提出フォームを発行しましょう
               </CardDescription>
             </CardHeader>
@@ -81,8 +81,8 @@ export default function NewProjectPage() {
               <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 lg:space-y-8">
                 {/* プロジェクト名 */}
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-sm sm:text-base lg:text-xl font-semibold text-gray-900">
-                    プロジェクト名 <span className="text-blue-700">*</span>
+                  <Label htmlFor="title" className="text-sm sm:text-base lg:text-xl font-semibold">
+                    プロジェクト名 <span className="text-primary">*</span>
                   </Label>
                   <Input
                     id="title"
@@ -91,14 +91,14 @@ export default function NewProjectPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="h-10 sm:h-12 lg:h-16 border-gray-300 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-20 focus-visible:border-blue-500 text-sm sm:text-base lg:text-xl"
+                    className="h-10 sm:h-12 lg:h-16 text-sm sm:text-base lg:text-xl"
                   />
                 </div>
 
                 {/* 依頼者名 */}
                 <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm sm:text-base lg:text-xl font-semibold text-gray-900">
-                    依頼者名 <span className="text-blue-700">*</span>
+                  <Label htmlFor="name" className="text-sm sm:text-base lg:text-xl font-semibold">
+                    依頼者名 <span className="text-primary">*</span>
                   </Label>
                   <Input
                     id="name"
@@ -107,14 +107,14 @@ export default function NewProjectPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="h-10 sm:h-12 lg:h-16 border-gray-300 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-20 focus-visible:border-blue-500 text-sm sm:text-base lg:text-xl"
+                    className="h-10 sm:h-12 lg:h-16 text-sm sm:text-base lg:text-xl"
                   />
                 </div>
 
                 {/* 依頼者メールアドレス */}
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm sm:text-base lg:text-xl font-semibold text-gray-900">
-                    依頼者メールアドレス <span className="text-blue-700">*</span>
+                  <Label htmlFor="email" className="text-sm sm:text-base lg:text-xl font-semibold">
+                    依頼者メールアドレス <span className="text-primary">*</span>
                   </Label>
                   <Input
                     id="email"
@@ -123,7 +123,7 @@ export default function NewProjectPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="h-10 sm:h-12 lg:h-16 border-gray-300 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-opacity-20 focus-visible:border-blue-500 text-sm sm:text-base lg:text-xl"
+                    className="h-10 sm:h-12 lg:h-16 text-sm sm:text-base lg:text-xl"
                   />
                 </div>
 
@@ -131,7 +131,7 @@ export default function NewProjectPage() {
                 <div className="pt-4 sm:pt-6">
                   <Button
                     type="submit"
-                    className="w-full bg-blue-500 text-white font-semibold px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-6 rounded-xl shadow-md hover:bg-blue-600 hover:shadow-lg transition-all duration-200 text-base sm:text-lg lg:text-2xl"
+                    className="w-full gradient-primary font-semibold px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-6 rounded-xl glow-blue-sm hover:glow-blue transition-all duration-200 text-base sm:text-lg lg:text-2xl"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
