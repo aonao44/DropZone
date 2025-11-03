@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +56,9 @@ export default function NewProjectPage() {
       <header className="border-b border-border relative z-10">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
-            <DropZoneLogo isDark={true} />
+            <Link href="/">
+              <DropZoneLogo isDark={true} />
+            </Link>
             <Button
               onClick={() => router.push("/dashboard")}
               variant="outline"

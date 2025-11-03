@@ -58,7 +58,9 @@ export function DashboardClient({ projects }: DashboardClientProps) {
       <header className="border-b border-border relative z-10">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
-            <DropZoneLogo isDark={true} />
+            <Link href="/">
+              <DropZoneLogo isDark={true} />
+            </Link>
             <div className="flex items-center gap-2 sm:gap-3">
               <Button
                 onClick={() => router.push("/")}
