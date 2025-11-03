@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Copy, Eye, Inbox, Plus, Home } from "lucide-react";
+import { Copy, Eye, Inbox, Plus, Home, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ interface DashboardClientProps {
 export function DashboardClient({ projects }: DashboardClientProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
   const handleCopyFormUrl = (slug: string) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -37,6 +38,45 @@ export function DashboardClient({ projects }: DashboardClientProps) {
       title: "URLをコピーしました",
       description: "提出フォームのURLがクリップボードにコピーされました",
     });
+  };
+
+  const handleDeleteProject = async (projectId: string, projectTitle: string) => {
+    if (!confirm(`プロジェクト「${projectTitle}」を削除してもよろしいですか？\nこの操作は取り消せません。`)) {
+      return;
+    }
+
+    setDeletingProjectId(projectId);
+
+    try {
+      const response = await fetch(`/api/projects/${projectId}`, {
+        method: "DELETE",
+      });
+
+      if (response.ok) {
+        toast({
+          title: "プロジェクトを削除しました",
+          description: "プロジェクトが正常に削除されました",
+        });
+        // ページをリロードして最新の状態を反映
+        router.refresh();
+      } else {
+        const data = await response.json();
+        toast({
+          title: "削除に失敗しました",
+          description: data.error || "プロジェクトの削除に失敗しました",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast({
+        title: "エラーが発生しました",
+        description: "プロジェクトの削除中にエラーが発生しました",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingProjectId(null);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -162,6 +202,15 @@ export function DashboardClient({ projects }: DashboardClientProps) {
                         <Eye className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                         提出内容<span className="hidden sm:inline">を</span>確認
                       </Link>
+                    </Button>
+                    <Button
+                      onClick={() => handleDeleteProject(project.id, project.title)}
+                      variant="outline"
+                      disabled={deletingProjectId === project.id}
+                      className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground font-semibold px-4 py-3 sm:px-6 sm:py-4 rounded-xl transition-all duration-200 text-sm sm:text-base"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      {deletingProjectId === project.id ? "削除中..." : "削除"}
                     </Button>
                   </CardFooter>
                 </Card>
