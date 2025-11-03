@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropZoneLogo } from "@/components/dropzone-logo";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { AnimatedBackground } from "@/components/animated-background";
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -48,8 +49,10 @@ export default function NewProjectPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <AnimatedBackground />
+
       {/* ヘッダー */}
-      <header className="border-b border-border">
+      <header className="border-b border-border relative z-10">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
             <DropZoneLogo isDark={true} />
@@ -66,7 +69,7 @@ export default function NewProjectPage() {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="py-8 sm:py-12 lg:py-16">
+      <main className="py-8 sm:py-12 lg:py-16 relative z-10">
         <div className="max-w-xl sm:max-w-2xl lg:max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="border-glow bg-card glow-blue-sm">
             <CardHeader className="space-y-2 sm:space-y-3 pb-4 sm:pb-6 p-4 sm:p-6 lg:p-8">

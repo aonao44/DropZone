@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { DropZoneLogo } from "@/components/dropzone-logo";
+import { AnimatedBackground } from "@/components/animated-background";
 
 type Project = {
   id: string;
@@ -51,8 +52,10 @@ export function DashboardClient({ projects }: DashboardClientProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <AnimatedBackground />
+
       {/* ヘッダー */}
-      <header className="border-b border-border">
+      <header className="border-b border-border relative z-10">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
             <DropZoneLogo isDark={true} />
@@ -78,7 +81,7 @@ export function DashboardClient({ projects }: DashboardClientProps) {
       </header>
 
       {/* メインコンテンツ */}
-      <main className="py-8 sm:py-12 lg:py-16">
+      <main className="py-8 sm:py-12 lg:py-16 relative z-10">
         <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8 sm:mb-10">
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">プロジェクト一覧</h1>

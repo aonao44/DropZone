@@ -12,6 +12,7 @@ import { DropZoneLogo } from "@/components/dropzone-logo";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { DownloadButton } from "@/components/DownloadButton";
+import { AnimatedBackground } from "@/components/animated-background";
 
 type Submission = {
   id: string;
@@ -74,18 +75,20 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
+      <AnimatedBackground />
+
       {/* ヘッダー */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <header className="border-b border-border relative z-10">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
-            <DropZoneLogo isDark={false} />
+            <DropZoneLogo isDark={true} />
             <Button
               onClick={() => router.push("/dashboard")}
               variant="outline"
-              className="border-2 border-gray-300 text-gray-700 font-semibold px-6 py-3 rounded-xl shadow-sm hover:bg-gray-50 hover:shadow-md transition-all duration-200"
+              className="border-glow font-semibold px-3 py-2 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
               ダッシュボードに戻る
             </Button>
           </div>
@@ -93,14 +96,14 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
       </header>
 
       {/* メインコンテンツ */}
-      <main className="py-8 sm:py-12">
-        <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="py-8 sm:py-12 lg:py-16 relative z-10">
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           {/* プロジェクト情報カード */}
-          <Card className="mb-8 border-2 border-gray-200 rounded-2xl shadow-md">
+          <Card className="mb-8 border-glow bg-card transition-all duration-200">
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-3xl font-bold text-gray-900 mb-2">
+                  <CardTitle className="text-3xl font-bold mb-2">
                     {project.title}
                   </CardTitle>
                   <CardDescription className="text-base">
@@ -110,30 +113,30 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                 <Button
                   onClick={handleCopyFormUrl}
                   variant="outline"
-                  className="border-2 border-blue-500 text-blue-600 font-semibold px-6 py-3 rounded-xl shadow-sm hover:bg-blue-50 hover:shadow-md transition-all duration-200"
+                  className="border-glow font-semibold px-4 py-3 sm:px-6 sm:py-4 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
                 >
-                  <Copy className="mr-2 h-4 w-4" />
+                  <Copy className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                   フォームURLをコピー
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-sm text-gray-600 mb-1">作成日</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                <div className="bg-muted p-4 rounded-xl">
+                  <p className="text-sm text-muted-foreground mb-1">作成日</p>
+                  <p className="text-lg font-semibold">
                     {formatDate(project.created_at)}
                   </p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-sm text-gray-600 mb-1">提出数</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                <div className="bg-muted p-4 rounded-xl">
+                  <p className="text-sm text-muted-foreground mb-1">提出数</p>
+                  <p className="text-lg font-semibold">
                     {submissions.length}件
                   </p>
                 </div>
-                <div className="bg-gray-50 p-4 rounded-xl">
-                  <p className="text-sm text-gray-600 mb-1">総ファイル数</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                <div className="bg-muted p-4 rounded-xl">
+                  <p className="text-sm text-muted-foreground mb-1">総ファイル数</p>
+                  <p className="text-lg font-semibold">
                     {submissions.reduce(
                       (total, sub) => total + (Array.isArray(sub.files) ? sub.files.length : 0),
                       0
@@ -147,12 +150,12 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
 
           {/* 提出一覧 */}
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">提出一覧</h2>
+            <h2 className="text-2xl font-bold">提出一覧</h2>
 
             {submissions.length === 0 ? (
-              <Card className="border-2 border-dashed border-gray-300 rounded-2xl">
+              <Card className="border-2 border-dashed border-border rounded-2xl bg-card">
                 <CardContent className="py-12 text-center">
-                  <p className="text-gray-600 text-lg">
+                  <p className="text-muted-foreground text-lg">
                     まだ提出がありません
                   </p>
                 </CardContent>
@@ -162,7 +165,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                 {submissions.map((submission) => (
                   <Card
                     key={submission.id}
-                    className="border-2 border-gray-200 rounded-2xl shadow-md hover:shadow-lg transition-all duration-200"
+                    className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm"
                   >
                     <CardHeader
                       className="cursor-pointer"
@@ -174,7 +177,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-xl font-semibold text-gray-900">
+                          <CardTitle className="text-xl font-semibold">
                             {submission.name}
                           </CardTitle>
                           <CardDescription className="mt-1">
@@ -183,11 +186,11 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Calendar className="h-4 w-4" />
                               {formatDate(submission.created_at)}
                             </div>
-                            <Badge className="mt-1 bg-blue-500">
+                            <Badge className="mt-1 bg-primary">
                               {Array.isArray(submission.files) ? submission.files.length : 0}
                               ファイル
                             </Badge>
@@ -203,7 +206,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                         {/* ファイル一覧 */}
                         {Array.isArray(submission.files) && submission.files.length > 0 && (
                           <div className="mb-6">
-                            <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2">
                               <FileIcon className="h-5 w-5" />
                               アップロードファイル
                             </h4>
@@ -211,15 +214,15 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                               {submission.files.map((file: any, index: number) => (
                                 <div
                                   key={index}
-                                  className="border border-gray-300 rounded-xl p-4 hover:border-blue-500 hover:shadow-md transition-all duration-200"
+                                  className="border border-border rounded-xl p-4 hover:border-primary transition-all duration-200"
                                 >
                                   <div className="flex items-start justify-between mb-2">
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-medium text-gray-900 truncate">
+                                      <p className="font-medium truncate">
                                         {file.name}
                                       </p>
                                       {file.size && (
-                                        <p className="text-sm text-gray-600">
+                                        <p className="text-sm text-muted-foreground">
                                           {formatFileSize(file.size)}
                                         </p>
                                       )}
@@ -231,7 +234,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                                       fileName={file.name}
                                       variant="default"
                                       size="sm"
-                                      className="w-full mt-2 bg-blue-500 text-white hover:bg-blue-600"
+                                      className="w-full mt-2 gradient-primary hover:glow-blue-sm"
                                     />
                                   )}
                                 </div>
@@ -244,7 +247,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                         {Array.isArray(submission.figma_links) &&
                           submission.figma_links.length > 0 && (
                             <div>
-                              <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                              <h4 className="font-semibold mb-3 flex items-center gap-2">
                                 <LinkIcon className="h-5 w-5" />
                                 Figmaリンク
                               </h4>
@@ -252,13 +255,13 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                                 {submission.figma_links.map((link: string, index: number) => (
                                   <div
                                     key={index}
-                                    className="border border-gray-300 rounded-xl p-3 flex items-center justify-between"
+                                    className="border border-border rounded-xl p-3 flex items-center justify-between"
                                   >
                                     <a
                                       href={link}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-blue-600 hover:text-blue-800 hover:underline truncate flex-1 min-w-0"
+                                      className="text-primary hover:text-primary/80 hover:underline truncate flex-1 min-w-0"
                                     >
                                       {link}
                                     </a>
