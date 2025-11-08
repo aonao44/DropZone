@@ -1,404 +1,465 @@
-## 1. 基本理念
+# DropZone Design System - Digital Serenity
 
-Apple Human Interface Guidelines の洗練されたデザイン哲学を基盤としつつ、教育プラットフォームとしての独自性を表現します。ブランドカラーの青を軸に、清潔感・明瞭性・直感性を追求し、アクセシビリティを最優先に考慮したユーザー体験を提供します。
+## 1. デザイン理念
+
+Digital Serenity（デジタル・セレニティ）- 静寂と明瞭さが共存するミニマリスト・ダークテーマ。
+
+洗練されたダークモードUIをベースに、SVGグリッドパターン、マウス追従グラデーション、インタラクティブなリップルエフェクトを組み合わせた、モダンで落ち着きのあるデザインシステムです。アクセシビリティを最優先に、シンプルさと機能性のバランスを追求します。
 
 ## 2. 配色システム
 
-配色は個別 CSS で定義せず、Tailwind CSS のユーティリティクラスのみを使用する。
+配色は個別CSSで定義せず、Tailwind CSSのユーティリティクラスのみを使用する。
 
-### プライマリカラー（WCAG 適合）
+### ダークテーマ基本配色
 
-- メインブルー: blue-500 (#3B82F6) - 主要アクション、選択状態
-- ダークブルー: blue-600 (#2563EB) - ホバー状態、強調
-- 強調ブルー: blue-700 (#1D4ED8) - テキスト用、高コントラスト
-- 超強調ブルー: blue-800 (#1E40AF) - 白背景でのテキスト、AAA 対応
-- ライトブルー: blue-50 (#EFF6FF) - 背景、選択エリア（使用は最小限に）
-- ミドルブルー: blue-100 (#DBEAFE) - アイコン・バッジ背景（使用は最小限に、blue-200 で枠を付ける）
+- **背景グラデーション**: `bg-gradient-to-br from-slate-900 via-black to-slate-800`
+  - メインカラー: from-slate-900 (#0F172A)
+  - 中間カラー: via-black (#000000)
+  - アクセント: to-slate-800 (#1E293B)
 
-### グレースケール（アクセシビリティ最適化）
+### Slateカラーパレット
 
-- テキストメイン: gray-900 (#111827) - 主要テキスト（コントラスト比 21:1）
-- テキストサブ: gray-700 (#374151) - 補助テキスト（コントラスト比 12.6:1）
-- テキストキャプション: gray-600 (#4B5563) - 注釈、説明文（コントラスト比 7:1）
-- 薄めテキスト: gray-500 (#6B7280) - 非重要テキスト（コントラスト比 4.5:1）
-- 境界線: gray-300 (#D1D5DB) - 区切り線、カード境界
-- 薄境界線: gray-200 (#E5E7EB) - 軽い区切り線
-- 背景: white (#FFFFFF) - 基本背景（薄色背景は極力避ける）
-- セクション背景: gray-50 (#F9FAFB) - 必要な場合のみ使用
+- **テキストメイン**: text-slate-50 (#F8FAFC) - 主要テキスト、見出し
+- **テキストサブ**: text-slate-200 (#E2E8F0) - 通常テキスト
+- **テキストミュート**: text-slate-300 (#CBD5E1) - 説明文、サブテキスト
+- **テキストディム**: text-slate-400 (#94A3B8) - 補助情報、キャプション
 
-### システムカラー（コントラスト配慮）
+### カード・コンポーネント背景
 
-- 成功: green-600 (#059669) - コントラスト比 7:1 確保
-- 警告: amber-600 (#D97706) - コントラスト比 7:1 確保
-- エラー: red-600 (#DC2626) - コントラスト比 7:1 確保
-- 情報: blue-700 (#1D4ED8) - コントラスト比 7:1 確保
+- **カード背景**: bg-slate-800/40 - 透過性のある暗色（40%透明度）
+- **セクション背景**: bg-slate-700/30 - より薄い暗色（30%透明度）
+- **ホバー背景**: bg-slate-700/50 - ホバー時のセクション背景
+- **ボーダー**: border-slate-700/50 - 境界線（50%透明度）
+- **ボーダー濃**: border-slate-600/50 - より明瞭な境界線
 
-### カラー使用ルール
+### アクセントカラー（ホワイトボタン）
 
-- 白背景でのテキスト色は gray-700 以上を使用
-- 青背景でのテキスト色は常に白色（#FFFFFF）
-- 同色系の組み合わせは避ける（青背景に青ボタンなど）
-- 薄色背景（-50, -100 系）は極力使用しない
-- UI コンポーネントの境界は 3:1 以上のコントラスト確保
+- **プライマリボタン**: bg-slate-100 hover:bg-slate-200
+- **ボタンテキスト**: text-slate-900
+- **アウトラインボタン**: border-slate-600 bg-slate-800/50 text-slate-200
 
-## 3. 角丸システム
+### システムカラー
 
-### コンポーネント別設定
+- **成功**: bg-green-500/20 border-green-500/30 text-green-400
+- **警告**: bg-amber-500/10 border-amber-500/30 text-amber-200
+- **エラー**: bg-red-500/20 border-red-500/30 text-red-400
+- **情報**: bg-blue-500/20 border-blue-500/30 text-blue-400
 
-- 小ボタン: rounded-lg (8px 相当)
-- 標準ボタン: rounded-xl (12px 相当)
-- 大ボタン: rounded-2xl (16px 相当)
-- カード: rounded-2xl (16px 相当)
-- モーダル: rounded-3xl (24px 相当)
-- 入力フィールド: rounded-lg (8px 相当)
-- アイコンボタン: rounded-full（円形）
+### グラスモーフィズム効果
 
-### 角丸使用原則
+- **ブラー効果**: backdrop-blur-sm - カード、モーダル、セクションに適用
+- **透過度**: 20%-40%の範囲で使用（/20, /30, /40）
 
-- 同一コンポーネント内では統一の角丸値を使用
-- 親子関係にあるコンポーネントは角丸値を階層化
-- 過度に大きな角丸値は避ける
+### SVGグリッドパターン
 
-## 4. 余白体系
+```jsx
+<svg className="fixed inset-0 w-full h-full pointer-events-none z-0">
+  <defs>
+    <pattern id="gridDarkLayout" width="60" height="60" patternUnits="userSpaceOnUse">
+      <path d="M 60 0 L 0 0 0 60" fill="none" stroke="rgba(100, 116, 139, 0.1)" strokeWidth="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#gridDarkLayout)" />
+</svg>
+```
 
-### 基本単位（8px ベース）
+### マウス追従グラデーション
 
-- 極小: 2px (0.5rem)
-- 最小: 4px (1rem)
-- 小: 8px (2rem)
-- 標準: 16px (4rem)
-- 中: 24px (6rem)
-- 大: 32px (8rem)
-- 特大: 48px (12rem)
-- 最大: 64px (16rem)
+```css
+#mouse-gradient-dark {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 9999px;
+  background-image: radial-gradient(
+    circle,
+    rgba(156, 163, 175, 0.05),
+    rgba(107, 114, 128, 0.05),
+    transparent 70%
+  );
+  transform: translate(-50%, -50%);
+  transition: left 70ms linear, top 70ms linear, opacity 300ms ease-out;
+}
+```
 
-### ボタン内余白（タッチターゲット 44px 確保）
+## 3. タイポグラフィ
 
-- 小ボタン: px-3 py-2.5 (12px 10px) - 最小 44px 高さ
-- 標準ボタン: px-6 py-3 (24px 12px) - 48px 高さ
-- 大ボタン: px-8 py-4 (32px 16px) - 56px 高さ
-- アイコンボタン: p-3 (12px) - 48px x 48px
+### フォントウェイト階層
 
-### カード内余白
+- **超軽量**: font-extralight (200) - 大見出し、ヒーロータイトル
+- **軽量**: font-thin (300) - サブ見出し、装飾的テキスト
+- **標準軽量**: font-light (300) - 通常テキスト、説明文
+- **標準**: font-normal (400) - ラベル、入力フィールド
+- **中**: font-medium (500) - 強調ボタンテキスト
 
-- 小カード: p-4 (16px)
-- 標準カード: p-5 (20px)
-- 大カード: p-6 (24px)
-- 特大カード: p-8 (32px)
+### フォントサイズ階層（レスポンシブ対応）
 
-### セクション間隔
-
-- 要素間: space-y-2 (8px)
-- コンポーネント間: space-y-4 (16px)
-- セクション内: space-y-6 (24px)
-- セクション間: space-y-8 (32px)
-- ページセクション間: space-y-12 (48px)
-
-## 5. 影の適用
-
-### 標準影設定
-
-- ボタン標準影: shadow-sm (0 1px 2px rgba(0, 0, 0, 0.05))
-- ボタンホバー影: shadow-md (0 4px 6px rgba(0, 0, 0, 0.07))
-- プライマリボタン影: shadow-md (常時適用)
-- カード標準影: shadow-sm
-- カードホバー影: shadow-md
-- モーダル影: shadow-xl (0 20px 25px rgba(0, 0, 0, 0.1))
-- ドロップダウン影: shadow-lg (0 10px 15px rgba(0, 0, 0, 0.1))
-
-### 影の使用原則
-
-- 全てのインタラクティブ要素（ボタン、リンク）には必ず影を付与
-- ホバー時は影を一段階強化してフィードバックを提供
-- 非インタラクティブ要素の影は控えめに（shadow-sm 程度）
-- 重要度の高い要素ほど強い影を使用
-- 同一画面内で影の強度は最大 3 段階まで
-
-## 6. タイポグラフィ
-
-### フォントウェイト
-
-- 大見出し: font-bold (700)
-- 見出し: font-semibold (600)
-- 強調テキスト: font-semibold (600)
-- ボタンテキスト: font-semibold (600) - 視認性重視
-- 本文: font-normal (400)
-- キャプション: font-normal (400)
-- 軽いテキスト: font-light (300) - 使用は最小限
-
-### フォントサイズ階層
-
-- 大見出し: text-4xl (36px) + font-bold + leading-tight
-- 見出し 1: text-3xl (30px) + font-semibold + leading-tight
-- 見出し 2: text-2xl (24px) + font-semibold + leading-snug
-- 見出し 3: text-xl (20px) + font-semibold + leading-snug
-- 見出し 4: text-lg (18px) + font-semibold + leading-normal
-- 本文: text-base (16px) + font-normal + leading-relaxed
-- 小さい本文: text-sm (14px) + font-normal + leading-relaxed
-- キャプション: text-xs (12px) + font-normal + leading-normal
-
-### コントラスト要件（WCAG 2.1 準拠）
-
-- 通常テキスト: 4.5:1 以上（gray-600 以上推奨）
-- 大きなテキスト（18px 以上または太字 14px 以上）: 3:1 以上
-- 白背景の青テキスト: blue-700 以上を使用（7:1 以上）
-- 青背景の白テキスト: 常に白色（#FFFFFF）
-- 重要な情報: 7:1 以上（AAA 対応）
+- **ヒーロー見出し**: text-3xl sm:text-4xl lg:text-5xl + font-extralight + tracking-tight
+- **大見出し**: text-2xl sm:text-3xl lg:text-4xl + font-extralight + tracking-tight
+- **見出し1**: text-xl sm:text-2xl lg:text-3xl + font-light + tracking-tight
+- **見出し2**: text-lg sm:text-xl lg:text-2xl + font-light
+- **見出し3**: text-base sm:text-lg lg:text-xl + font-light
+- **本文**: text-sm sm:text-base lg:text-lg + font-light
+- **小本文**: text-xs sm:text-sm lg:text-base + font-light
 
 ### 行間・文字間隔
 
-- 見出し: leading-tight (1.25)
-- 本文: leading-relaxed (1.625)
-- 長文: leading-loose (2)
-- 文字間隔: tracking-normal（特別な場合のみ調整）
+- **見出し**: leading-tight (1.25) + tracking-tight
+- **本文**: leading-relaxed (1.625)
+- **長文**: leading-loose (2)
 
-## 7. コンポーネント設計
+### コントラスト要件
 
-### ボタン設計原則
+- ダークモード背景（slate-900系）に対して:
+  - メインテキスト: slate-50 (白に近い) - 高コントラスト
+  - サブテキスト: slate-300 - 中コントラスト
+  - ミュートテキスト: slate-400 - 低コントラスト
 
-- 全てのボタンに影を付与（押せることを明示）
-- 最小タッチターゲットサイズ 44px x 44px を確保
-- フォントウェイトは semibold 以上で視認性向上
-- 同一画面内での色の重複を避ける
-- disabled 状態は明確に区別（透明度 0.5 など）
-- ホバー時には cursor-pointer や色、影の変更などによりリアクションを付ける
+## 4. 角丸システム
 
-### プライマリボタン
+### コンポーネント別設定
 
-- 背景色: bg-blue-500
-- テキスト色: text-white
-- フォント: font-semibold
-- 影: shadow-md
-- ホバー: bg-blue-600 + shadow-lg
-- フォーカス: ring-2 ring-blue-500 ring-offset-2
-- 無効化: opacity-50 + cursor-not-allowed
+- **ボタン**: rounded-lg (8px)
+- **カード**: rounded-lg, rounded-2xl (16px)
+- **モーダル**: rounded-2xl, rounded-3xl (24px)
+- **入力フィールド**: rounded-md, rounded-lg
+- **アイコンボタン**: rounded-full（円形）
 
-### セカンダリボタン
+## 5. 余白体系
 
-- 背景色: bg-white
-- テキスト色: text-blue-700
-- ボーダー: border-2 border-blue-700
-- フォント: font-semibold
-- 影: shadow-sm
-- ホバー: bg-blue-50 + shadow-md
-- フォーカス: ring-2 ring-blue-500 ring-offset-2
+### レスポンシブ余白（モバイルファースト）
 
-### 危険ボタン
+- **コンテナ余白**: p-4 sm:p-6 lg:p-8
+- **カード内余白**: p-4 sm:p-6 lg:p-8
+- **セクション間**: space-y-4 sm:space-y-5 lg:space-y-6
 
-- 背景色: bg-red-600
-- テキスト色: text-white
-- フォント: font-semibold
-- 影: shadow-md
-- ホバー: bg-red-700 + shadow-lg
+### ボタン内余白（レスポンシブ）
+
+- **小ボタン**: px-3 py-2 sm:px-6 sm:py-3
+- **標準ボタン**: px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-6
+- **大ボタン**: px-6 py-4 sm:px-8 sm:py-6 lg:px-10 lg:py-8
+
+### 最小タッチターゲット
+
+- 44px x 44px 以上を確保（アクセシビリティ要件）
+
+## 6. コンポーネント設計
+
+### プライマリボタン（ホワイトボタン）
+
+```jsx
+<Button className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105">
+  プロジェクトを作成
+</Button>
+```
+
+### セカンダリボタン（アウトラインボタン）
+
+```jsx
+<Button
+  variant="outline"
+  className="border-slate-600 bg-slate-800/50 text-slate-200 hover:bg-slate-700/50 hover:text-slate-50 font-light px-6 py-3 rounded-lg transition-all duration-200"
+>
+  戻る
+</Button>
+```
 
 ### カード設計
 
-- 背景: bg-white
-- 境界線: border border-gray-300（視認性確保）
-- 影: shadow-md（視認性を高めるため sm から md に変更）
-- ホバー: shadow-lg + border-gray-400
-- 角丸: rounded-2xl
-- 内余白: p-5 または p-6
-
-### バッジ・ラベル設計
-
-- 背景: 薄色背景は避け、はっきりした色を使用
-- 境界線: border border-{color}-300 または border-gray-300（必須）
-- テキスト色: 背景とのコントラスト比 4.5:1 以上
-- 内余白: px-2 py-1 または px-3 py-1
-- 角丸: rounded-md または rounded-lg
-- フォント: text-sm font-medium
-- 影: shadow-sm（必要に応じて）
+```jsx
+<Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm transition-all duration-200 hover:bg-slate-800/60 hover:border-slate-600/50">
+  <CardHeader className="pb-4 p-6">
+    <CardTitle className="text-2xl font-light text-slate-50">
+      タイトル
+    </CardTitle>
+    <CardDescription className="text-base text-slate-400">
+      説明文
+    </CardDescription>
+  </CardHeader>
+  <CardContent className="p-6">
+    {/* コンテンツ */}
+  </CardContent>
+</Card>
+```
 
 ### 入力フィールド
 
-- 背景: bg-white
-- 境界線: border border-gray-300
-- フォーカス: border-blue-500 + ring-2 ring-blue-500 ring-opacity-20
-- エラー: border-red-500 + ring-2 ring-red-500 ring-opacity-20
-- プレースホルダー: placeholder-gray-500
-- 最小高さ: h-12（48px）
+```jsx
+<Input
+  className="h-12 text-base bg-slate-700/30 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:ring-slate-500"
+  placeholder="例: 山田 太郎"
+/>
+```
 
-### ナビゲーション
+### ラベル
 
-- アクティブ状態: bg-blue-700 + text-white
-- ホバー状態: bg-blue-50 + text-blue-700
-- 非アクティブ: text-gray-700
-- フォーカス: ring-2 ring-blue-500 ring-inset
+```jsx
+<Label className="text-base font-light text-slate-400">
+  お名前 <span className="text-slate-400">*</span>
+</Label>
+```
 
-## 8. レイアウトシステム
+### アラート・通知
 
-### コンテナ
+```jsx
+{/* 警告 */}
+<div className="bg-amber-500/10 border border-amber-500/30 text-amber-200 p-4 rounded-lg backdrop-blur-sm">
+  <p className="text-sm font-light">
+    <strong className="font-medium">注意:</strong> このURLは誰でもアクセス可能です。
+  </p>
+</div>
 
-- 最大幅: max-w-4xl (常に w-full と併用し、固定の横幅として使用)
-- 中央寄せ: mx-auto
-- 水平余白: px-4 sm:px-6 lg:px-8
-- 垂直余白: py-8 sm:py-12 lg:py-16
+{/* 成功 */}
+<div className="inline-flex items-center justify-center w-20 h-20 bg-green-500/20 rounded-full backdrop-blur-sm border border-green-500/30">
+  <CheckCircle className="w-12 h-12 text-green-400" />
+</div>
+```
 
-### グリッドシステム
-
-- 1 カラム: grid-cols-1
-- 2 カラム: grid-cols-1 md:grid-cols-2
-- 3 カラム: grid-cols-1 md:grid-cols-2 lg:grid-cols-3
-- 4 カラム: grid-cols-1 sm:grid-cols-2 lg:grid-cols-4
-- 間隔: gap-4 sm:gap-6 lg:gap-8
-
-### フレックスレイアウト
-
-- 水平配置: flex items-center justify-between
-- 垂直配置: flex flex-col items-center
-- 中央寄せ: flex items-center justify-center
-- 間隔: space-x-4 / space-y-4
-
-## 9. インタラクション
+## 7. インタラクティブエフェクト
 
 ### ホバー効果
 
-- ボタン: 色の深化 + 影の強化 + scale-105（わずかな拡大）
-- カード: 影の強化 + 境界線の濃化
-- リンク: 色の変化 + underline
-- アイコン: 色の変化 + rotate-12（わずかな回転）
-
-### フォーカス状態（アクセシビリティ重要）
-
-- 入力要素: ring-2 ring-blue-500 ring-opacity-50
-- ボタン: ring-2 ring-blue-500 ring-offset-2
-- リンク: ring-2 ring-blue-500 ring-offset-1
-- コントラスト比: 3:1 以上確保
-
-### アクティブ状態
-
-- ボタン: scale-95（わずかな縮小）
-- リンク: 色の更なる深化
-- 入力要素: ring-2 ring-blue-600
+- **ボタン**: hover:bg-slate-200 + hover:scale-105
+- **カード**: hover:bg-slate-800/60 + hover:border-slate-600/50
+- **リンク**: hover:text-slate-300 transition-colors
 
 ### トランジション
 
-- 標準: transition-all duration-200 ease-in-out
-- 色のみ: transition-colors duration-150 ease-in-out
-- 影のみ: transition-shadow duration-200 ease-in-out
-- 変形: transition-transform duration-150 ease-in-out
+- **標準**: transition-all duration-200
+- **色のみ**: transition-colors duration-200
+- **スケール**: transition-transform duration-200
 
-### ローディング状態
+### アニメーション
 
-- スピナー: animate-spin
-- パルス: animate-pulse
-- 背景: bg-gray-100（コンテンツ部分）
-- 透明度: opacity-50
+#### ワードアニメーション
+
+```css
+@keyframes word-appear {
+  0% { opacity: 0; transform: translateY(30px) scale(0.8); filter: blur(10px); }
+  50% { opacity: 0.8; transform: translateY(10px) scale(0.95); filter: blur(2px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+```
+
+#### グリッドライン描画
+
+```css
+@keyframes grid-draw {
+  0% { stroke-dashoffset: 1000; opacity: 0; }
+  50% { opacity: 0.3; }
+  100% { stroke-dashoffset: 0; opacity: 0.15; }
+}
+```
+
+#### パルスグロー
+
+```css
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+```
+
+#### リップルエフェクト
+
+```jsx
+const [ripples, setRipples] = useState([]);
+
+useEffect(() => {
+  const handleClick = (e) => {
+    const newRipple = { id: Date.now(), x: e.clientX, y: e.clientY };
+    setRipples(prev => [...prev, newRipple]);
+    setTimeout(() => setRipples(prev => prev.filter(r => r.id !== newRipple.id)), 1000);
+  };
+  document.addEventListener('click', handleClick);
+  return () => document.removeEventListener('click', handleClick);
+}, []);
+
+{ripples.map(ripple => (
+  <div
+    key={ripple.id}
+    className="ripple-effect"
+    style={{ left: `${ripple.x}px`, top: `${ripple.y}px` }}
+  ></div>
+))}
+```
+
+## 8. レイアウトシステム
+
+### DarkLayoutコンポーネント
+
+すべてのページは`DarkLayout`コンポーネントでラップする:
+
+```jsx
+import { DarkLayout } from "@/components/dark-layout";
+
+export default function Page() {
+  return (
+    <DarkLayout>
+      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        {/* コンテンツ */}
+      </div>
+    </DarkLayout>
+  );
+}
+```
+
+### コンテナ
+
+- **最大幅**: max-w-7xl (ダッシュボード、一覧ページ)
+- **中サイズ**: max-w-2xl sm:max-w-3xl lg:max-w-5xl (フォーム)
+- **小サイズ**: max-w-md sm:max-w-lg lg:max-w-2xl (完了画面)
+- **中央寄せ**: mx-auto
+- **水平余白**: px-4 sm:px-6 lg:px-8
+
+### グリッドシステム
+
+- **1カラム**: grid-cols-1
+- **2カラム**: grid-cols-1 md:grid-cols-2
+- **3カラム**: grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+- **間隔**: gap-4 sm:gap-6 lg:gap-8
+
+## 9. レスポンシブデザイン
+
+### ブレークポイント
+
+- **sm**: 640px 以上
+- **md**: 768px 以上
+- **lg**: 1024px 以上
+- **xl**: 1280px 以上
+- **2xl**: 1536px 以上
+
+### レスポンシブパターン
+
+```jsx
+{/* テキストサイズ */}
+<h1 className="text-2xl sm:text-3xl lg:text-5xl">
+
+{/* 余白 */}
+<div className="p-4 sm:p-6 lg:p-8">
+
+{/* 表示/非表示 */}
+<span className="hidden sm:inline">ホーム</span>
+
+{/* アイコンサイズ */}
+<Home className="h-4 w-4 sm:h-5 sm:w-5" />
+```
 
 ## 10. アクセシビリティ
 
 ### キーボード操作
 
-- Tab 順序の論理的な設定
-- Enter/Space キーでのボタン操作
-- Escape キーでのモーダル終了
-- 矢印キーでのナビゲーション
+- Tab順序の論理的な設定
+- フォーカスインジケーターの視認性（3:1以上）
+- Enterキーでのボタン操作
 
 ### スクリーンリーダー対応
 
-- 適切な aria-label 設定
-- heading 階層の正しい使用
-- フォーム要素の label 関連付け
-- 状態変化の音声通知（aria-live）
+- 適切なaria-label設定
+- heading階層の正しい使用
+- フォーム要素のlabel関連付け
 
-### 視覚的配慮
+### カラーコントラスト
 
-- 色のみに依存しない情報提示
-- 十分なコントラスト比の確保
-- 文字サイズの可変性
-- 動画・アニメーションの制御オプション
+- ダーク背景に対するテキストコントラスト4.5:1以上
+- ボタンとボーダーのコントラスト3:1以上
 
-### モーション配慮
-
-- prefers-reduced-motion メディアクエリ対応
-- 必要最小限のアニメーション
-- 自動再生の回避
-- 点滅・フラッシュの制限
-
-## 11. レスポンシブデザイン
-
-### ブレークポイント
-
-- sm: 640px 以上
-- md: 768px 以上
-- lg: 1024px 以上
-- xl: 1280px 以上
-- 2xl: 1536px 以上
-
-### レスポンシブ調整
-
-- フォントサイズ: text-sm md:text-base lg:text-lg
-- 余白: p-4 md:p-6 lg:p-8
-- グリッド: grid-cols-1 md:grid-cols-2 lg:grid-cols-3
-- 表示・非表示: hidden md:block / block md:hidden
-
-## 12. 実装チェックリスト
-
-### 必須項目（アクセシビリティ）
-
-- [ ] WCAG コントラスト要件の遵守（4.5:1 以上）
-- [ ] キーボードナビゲーション対応
-- [ ] 適切な aria 属性設定
-- [ ] フォーカスインジケーターの視認性（3:1 以上）
-- [ ] 最小タッチターゲット 44px 確保
-- [ ] スクリーンリーダー対応のテキスト
+## 11. 実装チェックリスト
 
 ### 必須項目（デザイン）
 
-- [ ] グレースケールの使用（真っ黒・真っ白の適切な使用）
-- [ ] 8px ベースの余白システム
-- [ ] 角丸の一貫性（lg, xl, 2xl, 3xl）
-- [ ] 全インタラクティブ要素への影付与
-- [ ] スムーズなトランジション（200ms 以下）
-- [ ] ボタンテキストは font-semibold 以上
-- [ ] 白背景の青テキストは blue-700 以上
-- [ ] カードには明確な境界線（border-gray-300）と影（shadow-md）
-- [ ] バッジには明確な境界線または濃い背景色で視認性確保
+- [ ] DarkLayoutコンポーネントでラップ
+- [ ] Slateカラーパレット使用（slate-50, 100, 200, 300, 400, 600, 700, 800, 900）
+- [ ] font-extralight/font-light使用
+- [ ] backdrop-blur-sm適用（カード、セクション）
+- [ ] 透過度設定（/20, /30, /40, /50）
+- [ ] レスポンシブ対応（sm:, lg:）
+- [ ] トランジション設定（transition-all duration-200）
 
-### 推奨項目（UX 向上）
+### 必須項目（アクセシビリティ）
 
-- [ ] ホバー効果の統一（影の強化）
-- [ ] フォーカス状態の明確化
+- [ ] コントラスト比4.5:1以上
+- [ ] 最小タッチターゲット44px x 44px
+- [ ] キーボードナビゲーション対応
+- [ ] フォーカス状態の視認性
+
+### 推奨項目（UX向上）
+
+- [ ] ホバーエフェクト（hover:scale-105）
 - [ ] ローディング状態の実装
-- [ ] エラーメッセージの親切な表示
-- [ ] 成功フィードバックの実装
-- [ ] プログレッシブエンハンスメント
-- [ ] パフォーマンス最適化
+- [ ] マウス追従グラデーション
+- [ ] リップルエフェクト
 
-### 色使いの注意点
-
-- [ ] 同色系の組み合わせ回避
-- [ ] 薄色背景の使用制限
-- [ ] システムカラーの適切な使用
-- [ ] 無効状態の明確な表示
-
-### 品質保証
-
-- [ ] 複数ブラウザでの動作確認
-- [ ] 複数デバイスでの表示確認
-- [ ] アクセシビリティツールでの検証
-- [ ] パフォーマンス測定
-- [ ] ユーザビリティテスト実施
-
-## 13. 禁止事項
+## 12. 禁止事項
 
 ### 絶対に避けるべき要素
 
-- [ ] 薄すぎる色の使用（コントラスト不足）
-- [ ] 同色系の重複（青背景に青ボタンなど）
-- [ ] 不要な薄色背景の多用
-- [ ] 影のないインタラクティブ要素
-- [ ] 44px 未満のタッチターゲット
-- [ ] キーボード操作不可能な要素
-- [ ] 色のみに依存した情報提示
-- [ ] 自動再生される音声・動画
-- [ ] 点滅・フラッシュ効果の使用
+- [ ] 明るい背景色の使用（bg-white, bg-gray-50など）
+- [ ] 原色・ビビッドカラーの使用
+- [ ] 重いフォントウェイト（font-bold, font-black）
+- [ ] グラデーション背景の多用（背景以外）
+- [ ] 過度なアニメーション
+- [ ] 44px未満のタッチターゲット
 
 ### 制限的使用項目
 
-- [ ] 薄色背景（-50, -100 系）は目的が明確な場合のみ
-- [ ] アニメーション効果は控えめに
+- [ ] font-mediumは強調ボタンテキストのみ
+- [ ] アニメーションは控えめに
 - [ ] 装飾的要素は最小限に
-- [ ] カスタムフォントは読みやすさ重視
-- [ ] 影の多用は避ける（最大 3 段階）
+- [ ] カスタムCSSは避け、Tailwindユーティリティクラスを使用
+
+## 13. コンポーネント使用例
+
+### ヘッダー
+
+```jsx
+<header className="border-b border-slate-700/50 backdrop-blur-sm">
+  <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
+    <div className="flex items-center justify-between">
+      <Link href="/" className="text-2xl font-extralight tracking-tight text-slate-50 hover:text-slate-300 transition-colors">
+        DropZone
+      </Link>
+      <Button className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105">
+        <Plus className="mr-2 h-5 w-5" />
+        新規プロジェクト
+      </Button>
+    </div>
+  </div>
+</header>
+```
+
+### セクション
+
+```jsx
+<div className="bg-slate-800/40 rounded-lg p-6 mb-6 border border-slate-700/50 backdrop-blur-sm">
+  <h2 className="text-lg font-light text-slate-100 mb-4">
+    プロジェクト情報
+  </h2>
+  <div className="space-y-2 text-sm font-light">
+    <div className="flex justify-between">
+      <span className="text-slate-400">プロジェクト名:</span>
+      <span className="text-slate-200">{project.title}</span>
+    </div>
+  </div>
+</div>
+```
+
+### 空状態
+
+```jsx
+<div className="bg-slate-800/30 border border-slate-700/50 rounded-3xl p-12 text-center backdrop-blur-sm">
+  <div className="w-24 h-24 mx-auto bg-slate-700/30 rounded-full flex items-center justify-center mb-8">
+    <Inbox className="h-14 w-14 text-slate-400" />
+  </div>
+  <h3 className="text-3xl font-light mb-4 text-slate-100">
+    まだプロジェクトがありません
+  </h3>
+  <p className="text-lg text-slate-400 mb-8 leading-relaxed font-light">
+    「新規プロジェクト」ボタンをクリックして、最初のプロジェクトを作成しましょう
+  </p>
+</div>
+```
+
+---
+
+**このデザインシステムは、DropZoneプロジェクトのすべてのUIコンポーネントに適用されます。**
+**新規コンポーネントを作成する際は、このドキュメントを参照し、一貫性のあるデザインを維持してください。**
