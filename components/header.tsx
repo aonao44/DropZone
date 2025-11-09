@@ -1,21 +1,25 @@
 import Link from "next/link"
+import Image from "next/image"
 import { UserButton } from "@clerk/nextjs"
 import { auth } from "@clerk/nextjs/server"
 import { Button } from "@/components/ui/button"
-import { Package } from "lucide-react"
 
 export default async function Header() {
   const { userId } = await auth()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
       <div className="w-full flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700">
-              <Package className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold tracking-tight">DropZone</span>
+          <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
+            <Image
+              src="/dropzone-logo.png"
+              alt="DropZone"
+              width={180}
+              height={50}
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
