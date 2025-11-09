@@ -13,7 +13,6 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { FileUploader } from "./file-uploader";
-import { DropZoneLogo } from "./dropzone-logo";
 import { SubmissionLogs } from "./submission-logs";
 import { useUploadThing } from "@/lib/uploadthing";
 import { generateRandomSlug } from "@/lib/utils";
@@ -315,7 +314,6 @@ export function ClientSubmissionForm({
               </Button>
             </div>
             <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-              <DropZoneLogo isDark={true} />
               <CardTitle className="text-xl sm:text-2xl lg:text-4xl font-extralight tracking-tight text-slate-50">提出ログ一覧</CardTitle>
             </div>
             <CardDescription className="text-center text-sm sm:text-base lg:text-lg text-slate-300 font-light">過去の素材提出履歴を確認できます</CardDescription>
@@ -342,7 +340,6 @@ export function ClientSubmissionForm({
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
             <CardHeader className="pb-2 p-4 sm:p-6 lg:p-8">
               <div className="flex flex-col items-center space-y-3 sm:space-y-4 mb-2">
-                <DropZoneLogo isDark={true} />
                 <CardTitle className="text-2xl sm:text-3xl lg:text-5xl font-extralight tracking-tight mt-2 text-slate-50">素材提出フォーム</CardTitle>
               </div>
               <CardDescription className="text-center text-sm sm:text-base lg:text-lg text-slate-300 font-light">

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Copy, Eye, Inbox, Plus, Home, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,30 +92,44 @@ export function DashboardClient({ projects }: DashboardClientProps) {
 
   return (
     <DarkLayout>
-      {/* ヘッダー */}
-      <header className="border-b border-slate-700/50 backdrop-blur-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-3xl font-extralight tracking-tight text-slate-50 hover:text-slate-300 transition-colors">
-              DropZone
+      {/* ヘッダー - LPと同じデザイン */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <div className="w-full flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
+              <Image
+                src="/dropzone-logo.png"
+                alt="DropZone"
+                width={180}
+                height={50}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Button
-                onClick={() => router.push("/")}
-                variant="outline"
-                className="border-slate-600 bg-slate-800/50 text-slate-200 hover:bg-slate-700/50 hover:text-slate-50 font-light px-4 py-3 sm:px-7 sm:py-4 rounded-lg transition-all duration-200 text-base sm:text-lg"
-              >
-                <Home className="mr-1 sm:mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">ホーム</span>
-              </Button>
-              <Button
-                onClick={() => router.push("/dashboard/new")}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-4 py-3 sm:px-7 sm:py-4 rounded-lg transition-all duration-200 text-base sm:text-lg hover:scale-105"
-              >
-                <Plus className="mr-1 sm:mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                <span className="hidden sm:inline">新規</span>プロジェクト
-              </Button>
-            </div>
+
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/dashboard" className="text-base text-muted-foreground transition-colors hover:text-foreground">
+                ダッシュボード
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => router.push("/dashboard/new")}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-base"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              新規プロジェクト
+            </Button>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "h-9 w-9"
+                }
+              }}
+            />
           </div>
         </div>
       </header>

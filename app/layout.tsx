@@ -4,7 +4,6 @@ import { ClerkProvider } from "@clerk/nextjs"
 import { jaJP } from "@clerk/localizations"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
-import Header from "@/components/header"
 import "./globals.css"
 
 const _geist = Geist({ subsets: ["latin"] })
@@ -25,7 +24,6 @@ export default function RootLayout({
     <ClerkProvider localization={jaJP}>
       <html lang="ja">
         <body className={`font-sans antialiased`}>
-          <Header />
           {children}
           <Toaster />
         </body>

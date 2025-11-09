@@ -2,13 +2,14 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowLeft, Copy, Calendar, Clock, FileIcon, Link as LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { DropZoneLogo } from "@/components/dropzone-logo";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { DownloadButton } from "@/components/DownloadButton";
@@ -75,24 +76,48 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-slate-100 overflow-hidden relative">
       <AnimatedBackground />
 
-      {/* ヘッダー */}
-      <header className="border-b border-border relative z-10">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <DropZoneLogo isDark={true} />
+      {/* ヘッダー - LPと同じデザイン */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <div className="w-full flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
+              <Image
+                src="/dropzone-logo.png"
+                alt="DropZone"
+                width={180}
+                height={50}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
+
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/dashboard" className="text-base text-muted-foreground transition-colors hover:text-foreground">
+                ダッシュボード
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-4">
             <Button
               onClick={() => router.push("/dashboard")}
               variant="outline"
-              className="border-glow font-semibold px-3 py-2 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
+              className="text-base"
             >
-              <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              ダッシュボードに戻る
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              戻る
             </Button>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "h-9 w-9"
+                }
+              }}
+            />
           </div>
         </div>
       </header>

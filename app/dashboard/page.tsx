@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { DashboardClient } from "@/components/DashboardClient";
 
@@ -37,10 +37,16 @@ export default async function DashboardPage() {
   // 各プロジェクトの提出数を取得
   const projects: Project[] = await Promise.all(
     (projectsData || []).map(async (project) => {
-      const { count } = await supabase
+      const { count, error: countError } = await supabase
         .from("submissions")
         .select("id", { count: "exact", head: true })
-        .eq("project_id", project.id);
+        .eq("project_slug", project.slug);
+
+      if (countError) {
+        console.error(`Error counting submissions for project ${project.slug}:`, countError);
+      }
+
+      console.log(`Project ${project.slug} has ${count} submissions`);
 
       return {
         ...project,
