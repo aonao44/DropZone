@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { DownloadButton } from "@/components/DownloadButton";
-import { AnimatedBackground } from "@/components/animated-background";
+import { DarkLayout } from "@/components/dark-layout";
 
 type Submission = {
   id: string;
@@ -42,9 +42,6 @@ interface ProjectDetailClientProps {
 export function ProjectDetailClient({ project, submissions }: ProjectDetailClientProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const [expandedSubmission, setExpandedSubmission] = useState<string | null>(
-    submissions.length > 0 ? submissions[0].id : null
-  );
 
   const handleCopyFormUrl = () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -76,9 +73,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-slate-100 overflow-hidden relative">
-      <AnimatedBackground />
-
+    <DarkLayout>
       {/* ヘッダー - LPと同じデザイン */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
         <div className="w-full flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -124,7 +119,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
 
       {/* メインコンテンツ */}
       <main className="py-8 sm:py-12 lg:py-16 relative z-10">
-        <div className="w-full px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           {/* プロジェクト情報カード */}
           <Card className="mb-8 border-glow bg-card transition-all duration-200">
             <CardHeader>
@@ -194,14 +189,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                     key={submission.id}
                     className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm"
                   >
-                    <CardHeader
-                      className="cursor-pointer"
-                      onClick={() =>
-                        setExpandedSubmission(
-                          expandedSubmission === submission.id ? null : submission.id
-                        )
-                      }
-                    >
+                    <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <CardTitle className="text-xl font-semibold">
@@ -226,8 +214,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                       </div>
                     </CardHeader>
 
-                    {expandedSubmission === submission.id && (
-                      <CardContent>
+                    <CardContent>
                         <Separator className="mb-4" />
 
                         {/* ファイル一覧 */}
@@ -237,23 +224,21 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                               <FileIcon className="h-5 w-5" />
                               アップロードファイル
                             </h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 gap-4">
                               {submission.files.map((file: any, index: number) => (
                                 <div
                                   key={index}
-                                  className="border border-border rounded-xl p-4 hover:border-primary transition-all duration-200"
+                                  className="border border-border rounded-xl p-4 hover:border-primary transition-all duration-200 flex flex-col"
                                 >
-                                  <div className="flex items-start justify-between mb-2">
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-medium truncate">
-                                        {file.name}
+                                  <div className="flex-1 mb-2">
+                                    <p className="font-medium break-words">
+                                      {file.name}
+                                    </p>
+                                    {file.size && (
+                                      <p className="text-sm text-muted-foreground mt-1">
+                                        {formatFileSize(file.size)}
                                       </p>
-                                      {file.size && (
-                                        <p className="text-sm text-muted-foreground">
-                                          {formatFileSize(file.size)}
-                                        </p>
-                                      )}
-                                    </div>
+                                    )}
                                   </div>
                                   {file.url && (
                                     <DownloadButton
@@ -261,7 +246,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                                       fileName={file.name}
                                       variant="default"
                                       size="sm"
-                                      className="w-full mt-2 gradient-primary hover:glow-blue-sm"
+                                      className="w-full gradient-primary hover:glow-blue-sm"
                                     />
                                   )}
                                 </div>
@@ -311,7 +296,6 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                             </div>
                           )}
                       </CardContent>
-                    )}
                   </Card>
                 ))}
               </div>
@@ -319,6 +303,6 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
           </div>
         </div>
       </main>
-    </div>
+    </DarkLayout>
   );
 }
