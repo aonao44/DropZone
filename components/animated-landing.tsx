@@ -191,23 +191,23 @@ export function AnimatedLanding() {
 
           {/* Top Section */}
           <div className="text-center">
-            <h2 className="text-xs sm:text-sm font-mono font-light text-slate-300 uppercase tracking-[0.2em] opacity-80">
+            <h2 className="text-sm sm:text-base md:text-lg font-mono font-light text-slate-300 uppercase tracking-[0.2em] opacity-80">
               <span className="word-animate" data-delay="0">No</span>
               <span className="word-animate" data-delay="300">more</span>
               <span className="word-animate" data-delay="600">confusion.</span>
             </h2>
-            <div className="mt-4 w-12 sm:w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
+            <div className="mt-5 w-16 sm:w-20 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
           </div>
 
           {/* Hero Section */}
-          <div className="text-center max-w-5xl mx-auto relative">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extralight leading-tight tracking-tight text-slate-50">
-              <div className="mb-4 md:mb-6">
+          <div className="text-center w-full px-4 sm:px-6 lg:px-8 relative">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extralight leading-tight tracking-tight text-slate-50">
+              <div className="mb-6 md:mb-8">
                 <span className="word-animate" data-delay="700">ファイル提出、</span>
                 <span className="word-animate" data-delay="850">もう</span>
                 <span className="word-animate" data-delay="1000">迷わない。</span>
               </div>
-              <div className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-thin text-slate-300 leading-relaxed tracking-wide">
+              <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-thin text-slate-300 leading-relaxed tracking-wide">
                 <span className="word-animate" data-delay="1400">デザイナーと</span>
                 <span className="word-animate" data-delay="1550">クライアント</span>
                 <span className="word-animate" data-delay="1700">間での</span>
@@ -217,10 +217,10 @@ export function AnimatedLanding() {
             </h1>
 
             {/* CTA Button */}
-            <div className="mt-12 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '2.5s' }}>
+            <div className="mt-16 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '2.5s' }}>
               <Button
                 size="lg"
-                className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-8 py-6 rounded-lg transition-all duration-300 hover:scale-105"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-10 py-7 text-xl rounded-lg transition-all duration-300 hover:scale-105"
                 asChild
               >
                 <Link href="/dashboard">無料ではじめる</Link>
@@ -234,16 +234,16 @@ export function AnimatedLanding() {
 
           {/* Bottom Section */}
           <div className="text-center">
-            <div className="mb-4 w-12 sm:w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
-            <h2 className="text-xs sm:text-sm font-mono font-light text-slate-300 uppercase tracking-[0.2em] opacity-80">
+            <div className="mb-5 w-16 sm:w-20 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
+            <h2 className="text-sm sm:text-base md:text-lg font-mono font-light text-slate-300 uppercase tracking-[0.2em] opacity-80">
               <span className="word-animate" data-delay="3000">Simple,</span>
               <span className="word-animate" data-delay="3200">organized,</span>
               <span className="word-animate" data-delay="3400">seamless.</span>
             </h2>
-            <div className="mt-6 flex justify-center space-x-4 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '4.2s' }}>
-              <div className="w-1 h-1 bg-slate-300 rounded-full opacity-40"></div>
-              <div className="w-1 h-1 bg-slate-300 rounded-full opacity-60"></div>
-              <div className="w-1 h-1 bg-slate-300 rounded-full opacity-40"></div>
+            <div className="mt-7 flex justify-center space-x-5 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '4.2s' }}>
+              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40"></div>
+              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full opacity-60"></div>
+              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40"></div>
             </div>
           </div>
         </div>

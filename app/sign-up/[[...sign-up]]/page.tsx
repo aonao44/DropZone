@@ -1,25 +1,42 @@
-// /app/sign-up/[[...sign-up]]/page.tsx
-// Clerk認証は開発中のため一時的に無効化
-// import { SignUp } from "@clerk/nextjs";
-import type { Metadata } from "next";
+import { SignUp } from "@clerk/nextjs"
+import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Sign Up - Dropzone",
-  description: "Create a new account to start using Dropzone",
-};
+  title: "Sign Up - DropZone",
+  description: "DropZoneアカウントを作成して、素材回収を効率化しましょう",
+}
 
 export default function SignUpPage() {
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-900">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">サインアップ</h1>
-        <p className="text-gray-700 mb-4">
-          Clerk認証は現在開発中です。
-        </p>
-        <p className="text-sm text-gray-600">
-          認証機能は後ほど実装されます。
-        </p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950">
+      <div className="w-full max-w-md p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white mb-2">
+            アカウントを作成
+          </h1>
+          <p className="text-zinc-400">
+            素材回収の効率化を今すぐ始めましょう
+          </p>
+        </div>
+
+        <SignUp
+          appearance={{
+            elements: {
+              rootBox: "mx-auto",
+              card: "bg-zinc-900/50 backdrop-blur-xl border-zinc-800 shadow-2xl",
+              headerTitle: "text-white",
+              headerSubtitle: "text-zinc-400",
+              socialButtonsBlockButton: "bg-zinc-800 border-zinc-700 hover:bg-zinc-700 text-white",
+              formButtonPrimary: "bg-emerald-600 hover:bg-emerald-700 text-sm normal-case",
+              formFieldLabel: "text-zinc-300",
+              formFieldInput: "bg-zinc-800 border-zinc-700 text-white",
+              footerActionLink: "text-emerald-500 hover:text-emerald-400",
+              identityPreviewText: "text-white",
+              identityPreviewEditButton: "text-emerald-500 hover:text-emerald-400"
+            }
+          }}
+        />
       </div>
     </div>
-  );
+  )
 }

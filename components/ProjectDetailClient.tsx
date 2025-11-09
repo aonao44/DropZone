@@ -80,7 +80,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
 
       {/* ヘッダー */}
       <header className="border-b border-border relative z-10">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
           <div className="flex items-center justify-between">
             <Link href="/">
               <DropZoneLogo isDark={true} />
@@ -99,7 +99,7 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
 
       {/* メインコンテンツ */}
       <main className="py-8 sm:py-12 lg:py-16 relative z-10">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           {/* プロジェクト情報カード */}
           <Card className="mb-8 border-glow bg-card transition-all duration-200">
             <CardHeader>

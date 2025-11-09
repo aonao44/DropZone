@@ -1,20 +1,35 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 
-// Clerkミドルウェアを一時的に無効化
-// import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+// ダッシュボードと管理画面は認証必須
+const isProtectedRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/project/(.+)/view",
+  "/api/projects(.*)",
+  "/api/submissions(.*)",
+])
 
-// const isProtectedRoute = createRouteMatcher([
-//   "/submit",
-//   "/project/*/submit"
-// ]);
+// 公開ルート（認証不要）
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/project/(.+)/submit",
+  "/project/(.+)/created",
+  "/api/uploadthing",
+])
 
-// 一時的なミドルウェア（認証なし）
-export default function middleware(req: NextRequest) {
-  // すべてのリクエストを通す
-  return NextResponse.next();
-}
+export default clerkMiddleware(async (auth, req) => {
+  // 保護されたルートの場合は認証を要求
+  if (isProtectedRoute(req)) {
+    await auth.protect()
+  }
+})
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)", "/"],
-};
+  matcher: [
+    // Skip Next.js internals and all static files, unless found in search params
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    // Always run for API routes
+    '/(api|trpc)(.*)',
+  ],
+}

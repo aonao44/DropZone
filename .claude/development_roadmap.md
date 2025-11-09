@@ -21,27 +21,33 @@
   - ESLint/Prettier
   - `.env.local` 初期化（Clerk, Supabase, UploadThing）
 
-- [ ] **認証（管理者のみ）** ← 一時的に無効化中
+- [x] **認証（管理者のみ）** ✅ 完了
 
-  - ClerkProvider + `middleware.ts`（/dashboard 配下保護）
-  - `/sign-in` `/sign-up`（UI 最小）
-  - セッション取得ユーティリティ（server components 用）
+  - ClerkProvider + `middleware.ts`（/dashboard 配下保護）実装完了
+  - `/sign-in` `/sign-up` ページ実装完了（ダークテーマ対応）
+  - ヘッダーコンポーネント実装（認証状態に応じた表示切り替え）
+  - セッション取得ユーティリティ（server components 用）実装済み
+  - 日本語ローカライゼーション対応
 
 - [x] **DB/スキーマ（Supabase + Postgres）**
 
   - テーブル：projects / submissions / files / user_profiles
-  - 初期マイグレーション完了（4マイグレーション適用済み）
+  - 初期マイグレーション完了（4 マイグレーション適用済み）
 
 - [x] **アップロード基盤**
 
   - UploadThing（署名付き URL・ドラッグ&ドロップ）
-  - アップロード制限（拡張子/容量：10ファイル、8MB）
+  - アップロード制限（拡張子/容量：10 ファイル、8MB）
 
-- [x] **共通 UI/レイアウト**
+- [x] **共通コンポーネント** ✅ 部分完了
 
-  - Shadcn/ui コンポーネント（Button, Card, Input等）
-  - トースト/ローディング
-  - DropZoneLogo コンポーネント
+  - レイアウト（ヘッダー、ナビゲーション）✅ 完了
+    - Header コンポーネント実装完了（認証状態対応）
+    - DropZoneLogo コンポーネント実装済み
+  - UI コンポーネント（ボタン、フォーム、カード）✅ 完了
+    - Shadcn/ui コンポーネント導入済み
+  - エラーバウンダリー ⚠️ TODO: 未実装
+  - ローディング状態 ⚠️ TODO: グローバルローディングは未実装
 
 - [ ] **監視/ログ**
 
@@ -65,17 +71,17 @@
 
   - `/dashboard/new`（名称/依頼者名/メールアドレス）
   - スラッグ生成 `generateRandomSlug()`
-  - API実装済み（POST /api/projects）
+  - API 実装済み（POST /api/projects）
 
 - [x] **公開フォーム（ベース）**
 
   - `/project/[slug]/submit`（ログイン不要）
   - ClientSubmissionForm コンポーネント実装済み
-  - ファイルアップロード、Figmaリンク入力対応
+  - ファイルアップロード、Figma リンク入力対応
 
 - [x] **提出完了**
 
-  - 提出完了画面（ClientSubmissionForm内）
+  - 提出完了画面（ClientSubmissionForm 内）
   - 履歴確認機能（SubmissionLogs）
 
 - [x] **API/Server Actions**
@@ -99,9 +105,9 @@
 
 - [x] **ファイル検証（フロント+サーバ）**
 
-  - 基本的な拡張子・容量チェック（10ファイル、8MB上限）
+  - 基本的な拡張子・容量チェック（10 ファイル、8MB 上限）
   - ファイル数制限チェック実装済み
-  - ⚠️ TODO: 詳細検証（最小px・アスペクト比）は未実装
+  - ⚠️ TODO: 詳細検証（最小 px・アスペクト比）は未実装
 
 - [ ] **Figma リンク検証**
 
@@ -118,7 +124,7 @@
 - [x] **完了画面/再提出**
 
   - 同 URL で追送可能
-  - 完了画面表示（ClientSubmissionForm内）
+  - 完了画面表示（ClientSubmissionForm 内）
 
 - [ ] **イベント記録**
 
@@ -142,13 +148,13 @@
 
   - `/dashboard`：プロジェクト一覧（実データ取得完了）
   - Server Component + Client Component 分離実装
-  - 提出数の表示、フォームURL コピー機能
+  - 提出数の表示、フォーム URL コピー機能
 
 - [x] **詳細** ✅ 完了
 
   - `/project/[slug]/view`：プロジェクト詳細ページ実装完了
   - 提出一覧表示、ファイルプレビュー・ダウンロード
-  - Figmaリンク表示・コピー機能
+  - Figma リンク表示・コピー機能
   - アコーディオン形式で提出内容を展開表示
   - ⚠️ TODO: 不足タグ（自動/手動付与）は未実装
   - ⚠️ TODO: 管理メモは未実装
@@ -239,7 +245,7 @@
 - [x] **トップ/料金**
 
   - ランディングページ実装済み（/page.tsx）
-  - 価値訴求・機能説明・3ステップガイド
+  - 価値訴求・機能説明・3 ステップガイド
   - ⚠️ TODO: 料金ページ、FAQ、利用規約/プライバシーは未実装
 
 - [ ] **導入フロー**

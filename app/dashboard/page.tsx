@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { DashboardClient } from "@/components/DashboardClient";
+import Header from "@/components/header";
 
 type Project = {
   id: string;
@@ -31,7 +32,12 @@ export default async function DashboardPage() {
 
   if (error) {
     console.error("Error fetching projects:", error);
-    return <DashboardClient projects={[]} />;
+    return (
+      <>
+        <Header />
+        <DashboardClient projects={[]} />
+      </>
+    );
   }
 
   // 各プロジェクトの提出数を取得
@@ -49,5 +55,10 @@ export default async function DashboardPage() {
     })
   );
 
-  return <DashboardClient projects={projects} />;
+  return (
+    <>
+      <Header />
+      <DashboardClient projects={projects} />
+    </>
+  );
 }
