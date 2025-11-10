@@ -1,0 +1,101 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - link "Skip to Clerk keyless mode content" [ref=e2] [cursor=pointer]:
+    - /url: "#--clerk-keyless-prompt-button"
+  - generic [active]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - navigation [ref=e8]:
+            - button "previous" [disabled] [ref=e9]:
+              - img "previous" [ref=e10]
+            - generic [ref=e12]:
+              - generic [ref=e13]: 1/
+              - text: "1"
+            - button "next" [disabled] [ref=e14]:
+              - img "next" [ref=e15]
+          - img
+        - generic [ref=e17]:
+          - link "Next.js 15.5.6 (outdated) Webpack" [ref=e18] [cursor=pointer]:
+            - /url: https://nextjs.org/docs/messages/version-staleness
+            - img [ref=e19]
+            - generic "An outdated version detected (latest is 16.0.1), upgrade is highly recommended!" [ref=e21]: Next.js 15.5.6 (outdated)
+            - generic [ref=e22]: Webpack
+          - img
+      - dialog "Runtime Error" [ref=e24]:
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - generic [ref=e30]:
+                - generic [ref=e31]: Runtime Error
+                - generic [ref=e32]: Server
+              - generic [ref=e33]:
+                - button "Copy Error Info" [ref=e34] [cursor=pointer]:
+                  - img [ref=e35]
+                - button "No related documentation found" [disabled] [ref=e37]:
+                  - img [ref=e38]
+                - link "Learn more about enabling Node.js inspector for server code with Chrome DevTools" [ref=e40] [cursor=pointer]:
+                  - /url: https://nextjs.org/docs/app/building-your-application/configuring/debugging#server-side-code
+                  - img [ref=e41]
+            - paragraph [ref=e50]: Missing env.NEXT_PUBLIC_SUPABASE_URL
+          - generic [ref=e51]:
+            - generic [ref=e52]:
+              - paragraph [ref=e54]:
+                - img [ref=e56]
+                - generic [ref=e60]: lib/supabase/server.ts (6:11) @ createClient
+                - button "Open in editor" [ref=e61] [cursor=pointer]:
+                  - img [ref=e63]
+              - generic [ref=e66]:
+                - generic [ref=e67]: "4 | export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {"
+                - generic [ref=e68]: "5 | if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {"
+                - generic [ref=e69]: "> 6 | throw new Error(\"Missing env.NEXT_PUBLIC_SUPABASE_URL\");"
+                - generic [ref=e70]: "| ^"
+                - generic [ref=e71]: "7 | }"
+                - generic [ref=e72]: "8 | if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {"
+                - generic [ref=e73]: 9 | throw new Error("Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY");
+            - generic [ref=e74]:
+              - generic [ref=e75]:
+                - paragraph [ref=e76]:
+                  - text: Call Stack
+                  - generic [ref=e77]: "7"
+                - button "Show 5 ignore-listed frame(s)" [ref=e78] [cursor=pointer]:
+                  - text: Show 5 ignore-listed frame(s)
+                  - img [ref=e79]
+              - generic [ref=e81]:
+                - generic [ref=e82]:
+                  - text: createClient
+                  - button "Open createClient in editor" [ref=e83] [cursor=pointer]:
+                    - img [ref=e84]
+                - text: lib/supabase/server.ts (6:11)
+              - generic [ref=e86]:
+                - generic [ref=e87]:
+                  - text: SubmitPage
+                  - button "Open SubmitPage in editor" [ref=e88] [cursor=pointer]:
+                    - img [ref=e89]
+                - text: app/project/[slug]/submit/page.tsx (11:32)
+        - generic [ref=e91]:
+          - generic [ref=e92]: "1"
+          - generic [ref=e93]: "2"
+    - generic [ref=e98] [cursor=pointer]:
+      - button "Open Next.js Dev Tools" [ref=e99]:
+        - img [ref=e100]
+      - generic [ref=e103]:
+        - button "Open issues overlay" [ref=e104]:
+          - generic [ref=e105]:
+            - generic [ref=e106]: "0"
+            - generic [ref=e107]: "1"
+          - generic [ref=e108]: Issue
+        - button "Collapse issues badge" [ref=e109]:
+          - img [ref=e110]
+  - generic [ref=e113]:
+    - 'heading "Application error: a server-side exception has occurred while loading localhost (see the server logs for more information)." [level=2] [ref=e114]'
+    - paragraph [ref=e115]: "Digest: 82035915"
+  - button "Clerk is in keyless mode" [ref=e117]:
+    - generic [ref=e118]:
+      - generic [ref=e119]:
+        - img [ref=e121]
+        - img [ref=e127]
+      - paragraph [ref=e129] [cursor=pointer]: Clerk is in keyless mode
+```

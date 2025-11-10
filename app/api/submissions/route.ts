@@ -29,6 +29,55 @@ export async function POST(request: Request) {
 
     const projectSlug = body.projectSlug || body.slug;
 
+    // 冪等性チェック: 同じslugの提出が既に存在する場合は既存のデータを返す
+    const { data: existingSubmission, error: duplicateCheckError } = await supabase
+      .from("submissions")
+      .select("id, slug, files, project_slug")
+      .eq("slug", body.slug)
+      .single();
+
+    if (duplicateCheckError && duplicateCheckError.code !== "PGRST116") {
+      // PGRST116 = "No rows found" エラー以外はエラーとして処理
+      console.error("Error checking for duplicate submission:", duplicateCheckError);
+      return new NextResponse(
+        JSON.stringify({
+          error: "重複チェック中にエラーが発生しました",
+        }),
+        { status: 500 }
+      );
+    }
+
+    // 既存の提出が見つかった場合は、それを返す（冪等性）
+    if (existingSubmission) {
+      console.log("Duplicate submission detected, returning existing submission:", existingSubmission.id);
+
+      // 既存ファイル数を計算
+      const { data: allSubmissions } = await supabase
+        .from("submissions")
+        .select("files")
+        .eq("project_slug", projectSlug);
+
+      const existingFileCount = (allSubmissions || []).reduce((count, submission) => {
+        return count + (Array.isArray(submission.files) ? submission.files.length : 0);
+      }, 0);
+
+      return new NextResponse(
+        JSON.stringify({
+          success: true,
+          id: existingSubmission.id,
+          slug: existingSubmission.slug,
+          duplicate: true,
+          fileCount: {
+            existing: existingFileCount,
+            new: 0,
+            total: existingFileCount,
+            max: MAX_FILES_PER_PROJECT,
+          },
+        }),
+        { status: 200 }
+      );
+    }
+
     // プロジェクトが既存かチェック
     const { data: existingProjects, error: fetchError } = await supabase
       .from("submissions")

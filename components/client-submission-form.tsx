@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, User, Mail, Calendar, Clock, ArrowLeft, History, Upload, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -51,6 +51,9 @@ export function ClientSubmissionForm({
   const [existingFileCount, setExistingFileCount] = useState(0);
   const [showFileLimitError, setShowFileLimitError] = useState(false);
   const isDarkMode = true; // 常にダークモード
+
+  // React Strict Modeによる重複実行を防ぐフラグ
+  const isSubmittingRef = useRef(false);
 
   // Initialize Supabase client (client-side)
   const supabase = createClient(
@@ -115,48 +118,7 @@ export function ClientSubmissionForm({
     },
     onClientUploadComplete: async (res) => {
       console.log("Upload completed:", res);
-
-      if (res && res.length > 0) {
-        // slgが空でないことを確認
-        // 提出ごとに新しいslugを生成
-        const newSubmissionSlug = generateRandomSlug();
-
-        // Create submission record in Supabase
-        const response = await fetch("/api/submissions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            projectSlug: projectSlug, // プロジェクトのslug（固定値）
-            slug: newSubmissionSlug,   // 提出のslug（毎回新規生成）
-            submittedAt: new Date().toISOString(),
-            files: res.map((file: any) => ({
-              name: file.fileName || file.name,
-              url: file.ufsUrl || file.fileUrl || file.url, // v9互換性対応
-            })),
-            figmaLinks: figmaUrl ? [figmaUrl] : [],
-          }),
-        });
-
-        if (response.ok) {
-          // 送信完了後、最新のファイル数を再取得
-          await fetchExistingFileCount(projectSlug);
-          // ファイルリストをクリア
-          setLogoFiles([]);
-          // 提出完了状態に設定
-          setIsSubmitted(true);
-        } else {
-          const errorData = await response.json().catch(() => ({ error: "不明なエラーが発生しました" }));
-          console.error("Failed to create submission:", errorData);
-          alert(`提出に失敗しました: ${errorData.error || "不明なエラー"}`);
-          setIsUploading(false);
-        }
-      } else {
-        setIsUploading(false);
-      }
+      // ファイルアップロード完了時は何もしない（handleCreateSubmissionで処理）
     },
     onUploadError: (error) => {
       console.error("Upload error:", error);
@@ -166,6 +128,14 @@ export function ClientSubmissionForm({
 
   // 提出データを作成する関数
   const handleCreateSubmission = async (uploadedFiles?: any[]) => {
+    // 重複実行を防ぐ
+    if (isSubmittingRef.current) {
+      console.log("Submission already in progress, skipping duplicate call");
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     try {
       // 提出ごとに新しいslugを生成
       const newSubmissionSlug = generateRandomSlug();
@@ -208,11 +178,13 @@ export function ClientSubmissionForm({
         console.error("Failed to create submission:", errorData);
         alert(`提出に失敗しました: ${errorData.error || "不明なエラー"}`);
         setIsUploading(false);
+        isSubmittingRef.current = false; // エラー時はフラグをリセット
       }
     } catch (error) {
       console.error("Error in submission creation:", error);
       alert("提出中にエラーが発生しました。もう一度お試しください。");
       setIsUploading(false);
+      isSubmittingRef.current = false; // エラー時はフラグをリセット
     }
   };
 

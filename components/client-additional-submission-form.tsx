@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle, User, Mail, Calendar, Clock, ArrowLeft, History, Upload, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -45,6 +45,9 @@ export function ClientAdditionalSubmissionForm({
   const [errorMessage, setErrorMessage] = useState("");
   const isDarkMode = true; // 常にダークモード
 
+  // React Strict Modeによる重複実行を防ぐフラグ
+  const isSubmittingRef = useRef(false);
+
   // UploadThing hook for file uploads
   const { startUpload, isUploading: isUploadingFile } = useUploadThing("imageUploader", {
     onClientUploadComplete: async (res) => {
@@ -65,6 +68,14 @@ export function ClientAdditionalSubmissionForm({
 
   // 提出レコードを作成する共通関数
   const handleCreateSubmission = async (uploadedFiles?: any[]) => {
+    // 重複実行を防ぐ
+    if (isSubmittingRef.current) {
+      console.log("Submission already in progress, skipping duplicate call");
+      return;
+    }
+
+    isSubmittingRef.current = true;
+
     try {
       // 提出データの準備
       const submissionData = {
@@ -101,11 +112,13 @@ export function ClientAdditionalSubmissionForm({
         console.error("Failed to create submission:", data.error);
         setErrorMessage(data.error || "提出の保存に失敗しました。もう一度お試しください。");
         setIsUploading(false);
+        isSubmittingRef.current = false; // エラー時はフラグをリセット
       }
     } catch (error) {
       console.error("Error in submission creation:", error);
       setErrorMessage("予期せぬエラーが発生しました。もう一度お試しください。");
       setIsUploading(false);
+      isSubmittingRef.current = false; // エラー時はフラグをリセット
     }
   };
 

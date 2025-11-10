@@ -245,7 +245,6 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                                       url={file.url}
                                       fileName={file.name}
                                       variant="default"
-                                      size="sm"
                                       className="w-full gradient-primary hover:glow-blue-sm"
                                     />
                                   )}
