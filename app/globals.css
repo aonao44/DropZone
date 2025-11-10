@@ -4,8 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Inkdrop-inspired Dark Theme */
-  --background: #0b1220;
+  /* Dark Theme */
+  --background: #0f1319;
   --surface: #0f172a;
   --border: #1e293b;
   --text-primary: #e5e7eb;

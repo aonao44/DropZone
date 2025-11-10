@@ -2,14 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Copy, Eye, Inbox, Plus, Home, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { UserButton } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { DropZoneLogo } from "@/components/dropzone-logo";
-import { AnimatedBackground } from "@/components/animated-background";
+import { DarkLayout } from "@/components/dark-layout";
 
 type Project = {
   id: string;
@@ -41,7 +42,7 @@ export function DashboardClient({ projects }: DashboardClientProps) {
   };
 
   const handleDeleteProject = async (projectId: string, projectTitle: string) => {
-    if (!confirm(`プロジェクト「${projectTitle}」を削除してもよろしいですか？\nこの操作は取り消せません。`)) {
+    if (!confirm(`プロジェクト「${projectTitle}」を削除してもよろしいですか?\nこの操作は取り消せません。`)) {
       return;
     }
 
@@ -57,7 +58,6 @@ export function DashboardClient({ projects }: DashboardClientProps) {
           title: "プロジェクトを削除しました",
           description: "プロジェクトが正常に削除されました",
         });
-        // ページをリロードして最新の状態を反映
         router.refresh();
       } else {
         const data = await response.json();
@@ -91,63 +91,75 @@ export function DashboardClient({ projects }: DashboardClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <AnimatedBackground />
-
-      {/* ヘッダー */}
-      <header className="border-b border-border relative z-10">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <DropZoneLogo isDark={true} />
+    <DarkLayout>
+      {/* ヘッダー - LPと同じデザイン */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <div className="w-full flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
+              <Image
+                src="/dropzone-logo.png"
+                alt="DropZone"
+                width={180}
+                height={50}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Button
-                onClick={() => router.push("/")}
-                variant="outline"
-                className="border-glow font-semibold px-3 py-2 sm:px-6 sm:py-3 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
-              >
-                <Home className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline">ホーム</span>
-              </Button>
-              <Button
-                onClick={() => router.push("/dashboard/new")}
-                className="gradient-primary font-semibold px-3 py-2 sm:px-6 sm:py-3 rounded-xl glow-blue-sm hover:glow-blue transition-all duration-200 text-sm sm:text-base"
-              >
-                <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="hidden sm:inline">新規</span>プロジェクト
-              </Button>
-            </div>
+
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/dashboard" className="text-base text-muted-foreground transition-colors hover:text-foreground">
+                ダッシュボード
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => router.push("/dashboard/new")}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-base"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              新規プロジェクト
+            </Button>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "h-9 w-9"
+                }
+              }}
+            />
           </div>
         </div>
       </header>
 
       {/* メインコンテンツ */}
-      <main className="py-8 sm:py-12 lg:py-16 relative z-10">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <main className="py-8 sm:py-12 lg:py-16">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
           <div className="mb-8 sm:mb-10">
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4">プロジェクト一覧</h1>
-            <p className="text-base sm:text-lg lg:text-xl text-muted-foreground leading-relaxed">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extralight mb-3 sm:mb-4 tracking-tight text-slate-50">プロジェクト一覧</h1>
+            <p className="text-lg sm:text-xl lg:text-2xl text-slate-300 leading-relaxed font-light">
               素材提出の管理と確認ができます
             </p>
           </div>
 
           {projects.length === 0 ? (
-            <div className="bg-card border-2 border-dashed border-border rounded-2xl sm:rounded-3xl p-8 sm:p-12 lg:p-16 text-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mx-auto bg-muted rounded-full flex items-center justify-center mb-6 sm:mb-8">
-                <Inbox className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-muted-foreground" />
+            <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl sm:rounded-3xl p-8 sm:p-12 lg:p-16 text-center backdrop-blur-sm">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 lg:w-32 lg:h-32 mx-auto bg-slate-700/30 rounded-full flex items-center justify-center mb-6 sm:mb-8">
+                <Inbox className="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 text-slate-400" />
               </div>
-              <h3 className="text-2xl sm:text-3xl font-semibold mb-3 sm:mb-4">
+              <h3 className="text-3xl sm:text-4xl font-light mb-3 sm:mb-4 text-slate-100">
                 まだプロジェクトがありません
               </h3>
-              <p className="text-base sm:text-lg lg:text-xl text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
+              <p className="text-lg sm:text-xl lg:text-2xl text-slate-400 mb-6 sm:mb-8 leading-relaxed font-light">
                 「新規プロジェクト」ボタンをクリックして、最初のプロジェクトを作成しましょう
               </p>
               <Button
                 onClick={() => router.push("/dashboard/new")}
-                className="gradient-primary font-semibold px-6 py-3 sm:px-8 sm:py-4 rounded-xl glow-blue-sm hover:glow-blue transition-all duration-200 text-base sm:text-lg"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-8 py-4 sm:px-10 sm:py-5 rounded-lg transition-all duration-200 text-lg sm:text-xl hover:scale-105"
               >
-                <Plus className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+                <Plus className="mr-2 h-6 w-6 sm:h-7 sm:w-7" />
                 新規プロジェクト
               </Button>
             </div>
@@ -156,13 +168,13 @@ export function DashboardClient({ projects }: DashboardClientProps) {
               {projects.map((project) => (
                 <Card
                   key={project.id}
-                  className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm"
+                  className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm transition-all duration-200 hover:bg-slate-800/60 hover:border-slate-600/50"
                 >
                   <CardHeader className="pb-3 sm:pb-4 space-y-2 sm:space-y-3 p-5 sm:p-6 lg:p-8">
-                    <CardTitle className="text-xl sm:text-2xl font-semibold line-clamp-2">
+                    <CardTitle className="text-2xl sm:text-3xl font-light line-clamp-2 text-slate-50">
                       {project.title}
                     </CardTitle>
-                    <CardDescription className="text-sm sm:text-base">
+                    <CardDescription className="text-base sm:text-lg text-slate-400">
                       作成日: {formatDate(project.created_at)}
                     </CardDescription>
                   </CardHeader>
@@ -170,17 +182,17 @@ export function DashboardClient({ projects }: DashboardClientProps) {
                     <div className="space-y-2 sm:space-y-3">
                       <div className="flex items-center">
                         <div
-                          className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full mr-2 sm:mr-3 ${
-                            project.submission_count > 0 ? "bg-success" : "bg-warning"
+                          className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full mr-2 sm:mr-3 ${
+                            project.submission_count > 0 ? "bg-green-400" : "bg-yellow-400"
                           }`}
                         ></div>
-                        <span className="text-sm sm:text-base font-medium">
+                        <span className="text-base sm:text-lg font-light text-slate-200">
                           {project.submission_count > 0
                             ? `${project.submission_count}件の提出`
                             : "未提出"}
                         </span>
                       </div>
-                      <div className="text-xs sm:text-sm text-muted-foreground">
+                      <div className="text-sm sm:text-base text-slate-400 font-light">
                         依頼者: {project.client_name}
                       </div>
                     </div>
@@ -189,17 +201,17 @@ export function DashboardClient({ projects }: DashboardClientProps) {
                     <Button
                       onClick={() => handleCopyFormUrl(project.slug)}
                       variant="outline"
-                      className="w-full border-glow font-semibold px-4 py-3 sm:px-6 sm:py-4 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
+                      className="w-full border-slate-600 bg-slate-700/50 text-slate-200 hover:bg-slate-600/50 hover:text-slate-50 font-light px-5 py-4 sm:px-7 sm:py-5 rounded-lg transition-all duration-200 text-base sm:text-lg"
                     >
-                      <Copy className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <Copy className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
                       <span className="hidden sm:inline">フォーム</span>URLコピー
                     </Button>
                     <Button
                       asChild
-                      className="w-full gradient-primary font-semibold px-4 py-3 sm:px-6 sm:py-4 rounded-xl glow-blue-sm hover:glow-blue transition-all duration-200 text-sm sm:text-base"
+                      className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-5 py-4 sm:px-7 sm:py-5 rounded-lg transition-all duration-200 text-base sm:text-lg hover:scale-105"
                     >
                       <Link href={`/project/${project.slug}/view`}>
-                        <Eye className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        <Eye className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
                         提出内容<span className="hidden sm:inline">を</span>確認
                       </Link>
                     </Button>
@@ -207,9 +219,9 @@ export function DashboardClient({ projects }: DashboardClientProps) {
                       onClick={() => handleDeleteProject(project.id, project.title)}
                       variant="outline"
                       disabled={deletingProjectId === project.id}
-                      className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground font-semibold px-4 py-3 sm:px-6 sm:py-4 rounded-xl transition-all duration-200 text-sm sm:text-base"
+                      className="w-full border-red-600/50 text-red-400 hover:bg-red-900/20 hover:text-red-300 font-light px-5 py-4 sm:px-7 sm:py-5 rounded-lg transition-all duration-200 text-base sm:text-lg"
                     >
-                      <Trash2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <Trash2 className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
                       {deletingProjectId === project.id ? "削除中..." : "削除"}
                     </Button>
                   </CardFooter>
@@ -219,6 +231,6 @@ export function DashboardClient({ projects }: DashboardClientProps) {
           )}
         </div>
       </main>
-    </div>
+    </DarkLayout>
   );
 }

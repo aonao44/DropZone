@@ -25,16 +25,17 @@ type Project = {
 export default async function ProjectViewPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
+  const { slug } = await params;
 
   // プロジェクト情報を取得
   const { data: project, error: projectError } = await supabase
     .from("projects")
     .select("id, slug, title, client_name, client_email, created_at")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
     .single();
 
   if (projectError || !project) {

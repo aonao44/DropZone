@@ -1,5 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
+import { ClerkProvider } from "@clerk/nextjs"
+import { jaJP } from "@clerk/localizations"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
@@ -19,11 +21,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="ja">
-      <body className={`font-sans antialiased`}>
-        {children}
-        <Toaster />
-      </body>
-    </html>
+    <ClerkProvider localization={jaJP}>
+      <html lang="ja">
+        <body className={`font-sans antialiased`}>
+          {children}
+          <Toaster />
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

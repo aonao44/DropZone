@@ -21,27 +21,33 @@
   - ESLint/Prettier
   - `.env.local` 初期化（Clerk, Supabase, UploadThing）
 
-- [ ] **認証（管理者のみ）** ← 一時的に無効化中
+- [x] **認証（管理者のみ）** ✅ 完了
 
-  - ClerkProvider + `middleware.ts`（/dashboard 配下保護）
-  - `/sign-in` `/sign-up`（UI 最小）
-  - セッション取得ユーティリティ（server components 用）
+  - ClerkProvider + `middleware.ts`（/dashboard 配下保護）実装完了
+  - `/sign-in` `/sign-up` ページ実装完了（ダークテーマ対応）
+  - ヘッダーコンポーネント実装（認証状態に応じた表示切り替え）
+  - セッション取得ユーティリティ（server components 用）実装済み
+  - 日本語ローカライゼーション対応
 
 - [x] **DB/スキーマ（Supabase + Postgres）**
 
   - テーブル：projects / submissions / files / user_profiles
-  - 初期マイグレーション完了（4マイグレーション適用済み）
+  - 初期マイグレーション完了（4 マイグレーション適用済み）
 
 - [x] **アップロード基盤**
 
   - UploadThing（署名付き URL・ドラッグ&ドロップ）
-  - アップロード制限（拡張子/容量：10ファイル、8MB）
+  - アップロード制限（拡張子/容量：10 ファイル、8MB）
 
-- [x] **共通 UI/レイアウト**
+- [x] **共通コンポーネント** ✅ 部分完了
 
-  - Shadcn/ui コンポーネント（Button, Card, Input等）
-  - トースト/ローディング
-  - DropZoneLogo コンポーネント
+  - レイアウト（ヘッダー、ナビゲーション）✅ 完了
+    - Header コンポーネント実装完了（認証状態対応）
+    - DropZoneLogo コンポーネント実装済み
+  - UI コンポーネント（ボタン、フォーム、カード）✅ 完了
+    - Shadcn/ui コンポーネント導入済み
+  - エラーバウンダリー ⚠️ TODO: 未実装
+  - ローディング状態 ⚠️ TODO: グローバルローディングは未実装
 
 - [ ] **監視/ログ**
 
@@ -65,17 +71,17 @@
 
   - `/dashboard/new`（名称/依頼者名/メールアドレス）
   - スラッグ生成 `generateRandomSlug()`
-  - API実装済み（POST /api/projects）
+  - API 実装済み（POST /api/projects）
 
 - [x] **公開フォーム（ベース）**
 
   - `/project/[slug]/submit`（ログイン不要）
   - ClientSubmissionForm コンポーネント実装済み
-  - ファイルアップロード、Figmaリンク入力対応
+  - ファイルアップロード、Figma リンク入力対応
 
 - [x] **提出完了**
 
-  - 提出完了画面（ClientSubmissionForm内）
+  - 提出完了画面（ClientSubmissionForm 内）
   - 履歴確認機能（SubmissionLogs）
 
 - [x] **API/Server Actions**
@@ -99,9 +105,9 @@
 
 - [x] **ファイル検証（フロント+サーバ）**
 
-  - 基本的な拡張子・容量チェック（10ファイル、8MB上限）
+  - 基本的な拡張子・容量チェック（10 ファイル、8MB 上限）
   - ファイル数制限チェック実装済み
-  - ⚠️ TODO: 詳細検証（最小px・アスペクト比）は未実装
+  - ⚠️ TODO: 詳細検証（最小 px・アスペクト比）は未実装
 
 - [ ] **Figma リンク検証**
 
@@ -118,7 +124,7 @@
 - [x] **完了画面/再提出**
 
   - 同 URL で追送可能
-  - 完了画面表示（ClientSubmissionForm内）
+  - 完了画面表示（ClientSubmissionForm 内）
 
 - [ ] **イベント記録**
 
@@ -142,13 +148,13 @@
 
   - `/dashboard`：プロジェクト一覧（実データ取得完了）
   - Server Component + Client Component 分離実装
-  - 提出数の表示、フォームURL コピー機能
+  - 提出数の表示、フォーム URL コピー機能
 
 - [x] **詳細** ✅ 完了
 
   - `/project/[slug]/view`：プロジェクト詳細ページ実装完了
   - 提出一覧表示、ファイルプレビュー・ダウンロード
-  - Figmaリンク表示・コピー機能
+  - Figma リンク表示・コピー機能
   - アコーディオン形式で提出内容を展開表示
   - ⚠️ TODO: 不足タグ（自動/手動付与）は未実装
   - ⚠️ TODO: 管理メモは未実装
@@ -239,7 +245,7 @@
 - [x] **トップ/料金**
 
   - ランディングページ実装済み（/page.tsx）
-  - 価値訴求・機能説明・3ステップガイド
+  - 価値訴求・機能説明・3 ステップガイド
   - ⚠️ TODO: 料金ページ、FAQ、利用規約/プライバシーは未実装
 
 - [ ] **導入フロー**
@@ -319,7 +325,10 @@
 
 - [ ] **TTAF 中央値 ≤ 3 日**（ベータ 5 社の平均）
 - [ ] **不足率（初回）20%改善**（テンプレ＆検証導入前比）
-- [ ] **フォーム発行 ≤ 3 分 / 提出開始 ≤ 2 分**
+- [x] **フォーム発行 ≤ 3 分 / 提出開始 ≤ 2 分** ✅ E2Eテスト完了（2025-11-10）
+  - プロジェクト作成からフォーム発行まで約1分
+  - クライアント側の提出フロー約2分で完了
+  - デザイナー側での提出内容確認まで正常動作確認済み
 - [ ] **Free→Pro 転換 ≥ 5%（初月）**
 - [ ] 期限付き案件の**自動メール送達率 ≥ 98%**
 
@@ -341,6 +350,77 @@
 - [ ] Stripe Webhook 本番キー差し替え・リプレイ対策
 - [ ] 重要ログ（submitted、reminded、downloaded）が Event に残る
 - [ ] プライバシー/削除ポリシーの LP 明記
+
+---
+
+## E2Eテスト実施記録
+
+### 2025-11-10: 基本フロー全体テスト ✅ 完了
+
+Playwrightを使用して、アプリケーションの主要機能を端から端までテスト実施。
+
+#### テスト対象フロー
+
+1. **認証フロー**
+   - [x] ランディングページ表示
+   - [x] ログアウト
+   - [x] 新規登録画面確認
+   - [x] ログイン（既存アカウント）
+   - [x] ダッシュボード自動遷移
+
+2. **プロジェクト作成フロー**
+   - [x] 新規プロジェクト作成ページ遷移
+   - [x] プロジェクト情報入力（プロジェクト名、依頼者名、メールアドレス）
+   - [x] プロジェクト作成完了
+   - [x] 提出フォームURL発行
+
+3. **クライアント側提出フロー**
+   - [x] 提出フォームアクセス（未認証）
+   - [x] 提出者情報入力
+   - [x] ファイルアップロード（dropzone-logo.png）
+   - [x] フォーム送信
+   - [x] 提出完了画面表示
+
+4. **デザイナー側確認フロー**
+   - [x] プロジェクト詳細ページ（/project/[slug]/view）遷移
+   - [x] 提出一覧表示
+   - [x] ファイル情報表示
+   - [x] ダッシュボード反映確認
+
+#### テスト結果
+
+- **全フロー正常動作**: ✅
+- **所要時間**: プロジェクト作成〜提出完了まで約3分
+- **UI/UX**: すべての画面で適切にレンダリング
+- **データ永続化**: Supabaseへの保存・取得が正常
+- **ファイルアップロード**: UploadThingによるアップロードが正常動作
+
+#### 確認された機能
+
+- Clerk認証（ログイン/ログアウト/セッション管理）
+- プロジェクト作成API（POST /api/projects）
+- 提出API（POST /api/submissions）
+- ファイルアップロード（UploadThing統合）
+- Server Component + Client Componentの適切な分離
+- リアルタイムデータ反映（提出後すぐにダッシュボードに反映）
+
+#### スクリーンショット保存
+
+`.playwright-mcp/`ディレクトリに以下を保存:
+- landing-page.png
+- user-menu-opened.png
+- logged-out-state.png
+- sign-up-page.png
+- sign-in-page.png
+- dashboard-after-login.png
+- new-project-page.png
+- new-project-filled.png
+- project-created.png
+- submit-form-page.png
+- submit-form-filled.png
+- submission-complete.png
+- project-view-submissions.png
+- dashboard-final.png
 
 ---
 
