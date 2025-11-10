@@ -325,7 +325,10 @@
 
 - [ ] **TTAF 中央値 ≤ 3 日**（ベータ 5 社の平均）
 - [ ] **不足率（初回）20%改善**（テンプレ＆検証導入前比）
-- [ ] **フォーム発行 ≤ 3 分 / 提出開始 ≤ 2 分**
+- [x] **フォーム発行 ≤ 3 分 / 提出開始 ≤ 2 分** ✅ E2Eテスト完了（2025-11-10）
+  - プロジェクト作成からフォーム発行まで約1分
+  - クライアント側の提出フロー約2分で完了
+  - デザイナー側での提出内容確認まで正常動作確認済み
 - [ ] **Free→Pro 転換 ≥ 5%（初月）**
 - [ ] 期限付き案件の**自動メール送達率 ≥ 98%**
 
@@ -347,6 +350,77 @@
 - [ ] Stripe Webhook 本番キー差し替え・リプレイ対策
 - [ ] 重要ログ（submitted、reminded、downloaded）が Event に残る
 - [ ] プライバシー/削除ポリシーの LP 明記
+
+---
+
+## E2Eテスト実施記録
+
+### 2025-11-10: 基本フロー全体テスト ✅ 完了
+
+Playwrightを使用して、アプリケーションの主要機能を端から端までテスト実施。
+
+#### テスト対象フロー
+
+1. **認証フロー**
+   - [x] ランディングページ表示
+   - [x] ログアウト
+   - [x] 新規登録画面確認
+   - [x] ログイン（既存アカウント）
+   - [x] ダッシュボード自動遷移
+
+2. **プロジェクト作成フロー**
+   - [x] 新規プロジェクト作成ページ遷移
+   - [x] プロジェクト情報入力（プロジェクト名、依頼者名、メールアドレス）
+   - [x] プロジェクト作成完了
+   - [x] 提出フォームURL発行
+
+3. **クライアント側提出フロー**
+   - [x] 提出フォームアクセス（未認証）
+   - [x] 提出者情報入力
+   - [x] ファイルアップロード（dropzone-logo.png）
+   - [x] フォーム送信
+   - [x] 提出完了画面表示
+
+4. **デザイナー側確認フロー**
+   - [x] プロジェクト詳細ページ（/project/[slug]/view）遷移
+   - [x] 提出一覧表示
+   - [x] ファイル情報表示
+   - [x] ダッシュボード反映確認
+
+#### テスト結果
+
+- **全フロー正常動作**: ✅
+- **所要時間**: プロジェクト作成〜提出完了まで約3分
+- **UI/UX**: すべての画面で適切にレンダリング
+- **データ永続化**: Supabaseへの保存・取得が正常
+- **ファイルアップロード**: UploadThingによるアップロードが正常動作
+
+#### 確認された機能
+
+- Clerk認証（ログイン/ログアウト/セッション管理）
+- プロジェクト作成API（POST /api/projects）
+- 提出API（POST /api/submissions）
+- ファイルアップロード（UploadThing統合）
+- Server Component + Client Componentの適切な分離
+- リアルタイムデータ反映（提出後すぐにダッシュボードに反映）
+
+#### スクリーンショット保存
+
+`.playwright-mcp/`ディレクトリに以下を保存:
+- landing-page.png
+- user-menu-opened.png
+- logged-out-state.png
+- sign-up-page.png
+- sign-in-page.png
+- dashboard-after-login.png
+- new-project-page.png
+- new-project-filled.png
+- project-created.png
+- submit-form-page.png
+- submit-form-filled.png
+- submission-complete.png
+- project-view-submissions.png
+- dashboard-final.png
 
 ---
 
