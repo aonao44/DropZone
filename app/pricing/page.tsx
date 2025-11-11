@@ -1,12 +1,21 @@
 import Header from "@/components/header"
-import { PricingCards } from "@/components/pricing-cards"
+import { PricingTable } from "@clerk/nextjs"
+import { auth } from "@clerk/nextjs/server"
+import { redirect } from "next/navigation"
 
 export const metadata = {
   title: "料金プラン | DropZone",
   description: "DropZoneの料金プランをご確認ください。無料プランから始めて、必要に応じてアップグレードできます。",
 }
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  // 認証チェック - ログインしている必要がある
+  const { userId } = await auth()
+
+  if (!userId) {
+    redirect("/sign-in?redirect_url=/pricing")
+  }
+
   return (
     <>
       <Header />
@@ -28,12 +37,23 @@ export default function PricingPage() {
             </h1>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
               無料で始めて、ビジネスの成長に合わせてアップグレード。
-              <span className="block mt-2">すべてのプランで14日間の無料トライアルをご利用いただけます。</span>
+              <span className="block mt-2">プレミアムプランで全機能をご利用いただけます。</span>
             </p>
           </div>
 
-          {/* Pricing Cards */}
-          <PricingCards />
+          {/* Clerk Billing Pricing Table */}
+          <div className="max-w-6xl mx-auto">
+            <PricingTable
+              for="user"
+              newSubscriptionRedirectUrl="/dashboard"
+              fallback={
+                <div className="text-center py-12">
+                  <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-400 border-r-transparent"></div>
+                  <p className="mt-4 text-slate-400">料金プランを読み込み中...</p>
+                </div>
+              }
+            />
+          </div>
 
           {/* FAQ Section */}
           <div className="max-w-4xl mx-auto mt-24">

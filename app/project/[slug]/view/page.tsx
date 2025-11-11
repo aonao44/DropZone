@@ -2,6 +2,7 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProjectDetailClient } from "@/components/ProjectDetailClient";
+import { checkPremiumAccess } from "@/lib/billing";
 
 type Submission = {
   id: string;
@@ -53,10 +54,14 @@ export default async function ProjectViewPage({
     console.error("Error fetching submissions:", submissionsError);
   }
 
+  // プレミアムプランのチェック
+  const hasPremium = await checkPremiumAccess();
+
   return (
     <ProjectDetailClient
       project={project}
       submissions={submissions || []}
+      hasPremium={hasPremium}
     />
   );
 }

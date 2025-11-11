@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Copy, Calendar, Clock, FileIcon, Link as LinkIcon } from "lucide-react";
+import { ArrowLeft, Copy, Calendar, Clock, FileIcon, Link as LinkIcon, Download, Lock, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 
@@ -37,9 +37,10 @@ type Project = {
 interface ProjectDetailClientProps {
   project: Project;
   submissions: Submission[];
+  hasPremium?: boolean;
 }
 
-export function ProjectDetailClient({ project, submissions }: ProjectDetailClientProps) {
+export function ProjectDetailClient({ project, submissions, hasPremium = false }: ProjectDetailClientProps) {
   const { toast } = useToast();
   const router = useRouter();
 
@@ -167,6 +168,59 @@ export function ProjectDetailClient({ project, submissions }: ProjectDetailClien
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* プレミアム機能セクション */}
+          <Card className="mb-8 border-glow bg-card transition-all duration-200">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-yellow-500" />
+                <CardTitle className="text-xl">プレミアム機能</CardTitle>
+              </div>
+              <CardDescription>
+                全ファイルを一括でダウンロードできます
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasPremium ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    プレミアムプランをご利用中です。全てのファイルをZIP形式で一括ダウンロードできます。
+                  </p>
+                  <Button
+                    onClick={() => {
+                      // ZIP一括ダウンロード機能（後で実装）
+                      toast({
+                        title: "ZIP作成中",
+                        description: "ファイルをまとめています...",
+                      });
+                    }}
+                    className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    全ファイルをZIPでダウンロード
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-muted">
+                    <Lock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium mb-1">プレミアムプランが必要です</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        ZIP一括ダウンロード機能を利用するには、プレミアムプランへのアップグレードが必要です。
+                      </p>
+                      <Link href="/pricing">
+                        <Button variant="outline" size="sm" className="border-glow hover:glow-blue-sm">
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          プレミアムプランを見る
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -51,34 +51,13 @@ const plans: PricingPlan[] = [
     cta: "14日間無料トライアル",
     ctaLink: "/sign-up?plan=pro",
   },
-  {
-    id: "business",
-    name: "ビジネスプラン",
-    price: "¥4,980",
-    description: "大規模チーム向けのエンタープライズ機能",
-    features: [
-      "プロジェクト数: 無制限",
-      "ストレージ: 1TB",
-      "ファイルアップロード: 無制限",
-      "24/7専用サポート",
-      "セキュアなファイル共有",
-      "カスタムブランディング",
-      "高度な分析機能",
-      "チームコラボレーション",
-      "API アクセス",
-      "シングルサインオン (SSO)",
-      "専用アカウントマネージャー",
-    ],
-    cta: "お問い合わせ",
-    ctaLink: "mailto:sales@dropzone.example.com",
-  },
 ]
 
 export function PricingCards() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
       {plans.map((plan) => {
         const isSelected = selectedPlan === plan.id
         const isOtherSelected = selectedPlan && selectedPlan !== plan.id

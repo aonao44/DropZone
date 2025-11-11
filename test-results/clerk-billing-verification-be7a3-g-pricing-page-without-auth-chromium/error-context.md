@@ -1,0 +1,162 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "DropZone" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - img "DropZone" [ref=e6]
+        - navigation [ref=e7]:
+          - link "料金" [ref=e8] [cursor=pointer]:
+            - /url: /pricing
+      - generic [ref=e9]:
+        - link "ログイン" [ref=e10] [cursor=pointer]:
+          - /url: /sign-in
+          - button "ログイン" [ref=e11]
+        - link "新規登録" [ref=e12] [cursor=pointer]:
+          - /url: /sign-up
+          - button "新規登録" [ref=e13]
+  - generic [ref=e15]:
+    - generic [ref=e16]:
+      - generic [ref=e17]: Pricing
+      - heading "シンプルで 明確な料金プラン" [level=1] [ref=e18]:
+        - text: シンプルで
+        - generic [ref=e19]: 明確な料金プラン
+      - paragraph [ref=e20]:
+        - text: 無料で始めて、ビジネスの成長に合わせてアップグレード。
+        - generic [ref=e21]: すべてのプランで14日間の無料トライアルをご利用いただけます。
+    - generic [ref=e22]:
+      - generic [ref=e23] [cursor=pointer]:
+        - generic [ref=e24]:
+          - heading "無料プラン" [level=3] [ref=e25]
+          - paragraph [ref=e26]: 個人や小規模プロジェクトに最適
+          - generic [ref=e28]: ¥0
+        - list [ref=e29]:
+          - listitem [ref=e30]:
+            - img [ref=e31]
+            - generic [ref=e33]: "プロジェクト数: 3個まで"
+          - listitem [ref=e34]:
+            - img [ref=e35]
+            - generic [ref=e37]: "ストレージ: 1GB"
+          - listitem [ref=e38]:
+            - img [ref=e39]
+            - generic [ref=e41]: "ファイルアップロード: 無制限"
+          - listitem [ref=e42]:
+            - img [ref=e43]
+            - generic [ref=e45]: 基本サポート
+          - listitem [ref=e46]:
+            - img [ref=e47]
+            - generic [ref=e49]: セキュアなファイル共有
+        - link "無料で始める" [ref=e50]:
+          - /url: /sign-up
+          - button "無料で始める" [ref=e51]
+      - generic [ref=e52] [cursor=pointer]:
+        - generic [ref=e53]: 人気No.1
+        - generic [ref=e54]:
+          - heading "プロプラン" [level=3] [ref=e55]
+          - paragraph [ref=e56]: プロフェッショナル向けの充実機能
+          - generic [ref=e57]:
+            - generic [ref=e58]: ¥1,980
+            - generic [ref=e59]: /月
+          - paragraph [ref=e60]: 年間契約で2ヶ月分お得
+        - list [ref=e61]:
+          - listitem [ref=e62]:
+            - img [ref=e63]
+            - generic [ref=e65]: "プロジェクト数: 無制限"
+          - listitem [ref=e66]:
+            - img [ref=e67]
+            - generic [ref=e69]: "ストレージ: 100GB"
+          - listitem [ref=e70]:
+            - img [ref=e71]
+            - generic [ref=e73]: "ファイルアップロード: 無制限"
+          - listitem [ref=e74]:
+            - img [ref=e75]
+            - generic [ref=e77]: 優先サポート
+          - listitem [ref=e78]:
+            - img [ref=e79]
+            - generic [ref=e81]: セキュアなファイル共有
+          - listitem [ref=e82]:
+            - img [ref=e83]
+            - generic [ref=e85]: カスタムブランディング
+          - listitem [ref=e86]:
+            - img [ref=e87]
+            - generic [ref=e89]: 高度な分析機能
+          - listitem [ref=e90]:
+            - img [ref=e91]
+            - generic [ref=e93]: チームコラボレーション
+        - link "14日間無料トライアル" [ref=e94]:
+          - /url: /sign-up?plan=pro
+          - button "14日間無料トライアル" [ref=e95]
+      - generic [ref=e96] [cursor=pointer]:
+        - generic [ref=e97]:
+          - heading "ビジネスプラン" [level=3] [ref=e98]
+          - paragraph [ref=e99]: 大規模チーム向けのエンタープライズ機能
+          - generic [ref=e100]:
+            - generic [ref=e101]: ¥4,980
+            - generic [ref=e102]: /月
+          - paragraph [ref=e103]: 年間契約で2ヶ月分お得
+        - list [ref=e104]:
+          - listitem [ref=e105]:
+            - img [ref=e106]
+            - generic [ref=e108]: "プロジェクト数: 無制限"
+          - listitem [ref=e109]:
+            - img [ref=e110]
+            - generic [ref=e112]: "ストレージ: 1TB"
+          - listitem [ref=e113]:
+            - img [ref=e114]
+            - generic [ref=e116]: "ファイルアップロード: 無制限"
+          - listitem [ref=e117]:
+            - img [ref=e118]
+            - generic [ref=e120]: 24/7専用サポート
+          - listitem [ref=e121]:
+            - img [ref=e122]
+            - generic [ref=e124]: セキュアなファイル共有
+          - listitem [ref=e125]:
+            - img [ref=e126]
+            - generic [ref=e128]: カスタムブランディング
+          - listitem [ref=e129]:
+            - img [ref=e130]
+            - generic [ref=e132]: 高度な分析機能
+          - listitem [ref=e133]:
+            - img [ref=e134]
+            - generic [ref=e136]: チームコラボレーション
+          - listitem [ref=e137]:
+            - img [ref=e138]
+            - generic [ref=e140]: API アクセス
+          - listitem [ref=e141]:
+            - img [ref=e142]
+            - generic [ref=e144]: シングルサインオン (SSO)
+          - listitem [ref=e145]:
+            - img [ref=e146]
+            - generic [ref=e148]: 専用アカウントマネージャー
+        - link "お問い合わせ" [ref=e149]:
+          - /url: mailto:sales@dropzone.example.com
+          - button "お問い合わせ" [ref=e150]
+    - generic [ref=e151]:
+      - heading "よくある質問" [level=2] [ref=e152]
+      - generic [ref=e153]:
+        - generic [ref=e154]:
+          - heading "無料プランでどこまで使えますか？" [level=3] [ref=e155]
+          - paragraph [ref=e156]: 無料プランでは3つのプロジェクトと1GBのストレージをご利用いただけます。個人の小規模プロジェクトに最適です。
+        - generic [ref=e157]:
+          - heading "プランはいつでも変更できますか？" [level=3] [ref=e158]
+          - paragraph [ref=e159]: はい、いつでもプランのアップグレードやダウングレードが可能です。変更は即座に反映されます。
+        - generic [ref=e160]:
+          - heading "支払い方法は何が使えますか？" [level=3] [ref=e161]
+          - paragraph [ref=e162]: クレジットカード（Visa、Mastercard、American Express）およびデビットカードでのお支払いが可能です。
+        - generic [ref=e163]:
+          - heading "解約後のデータはどうなりますか？" [level=3] [ref=e164]
+          - paragraph [ref=e165]: 解約後30日間はデータを保持します。その間に再度サブスクリプションを開始することで、すべてのデータを復元できます。
+    - generic [ref=e167]:
+      - heading "まだ迷っていますか？" [level=2] [ref=e168]
+      - paragraph [ref=e169]: ご不明な点がございましたら、お気軽にお問い合わせください。 専門スタッフが丁寧にサポートいたします。
+      - link "お問い合わせ" [ref=e170] [cursor=pointer]:
+        - /url: mailto:support@dropzone.example.com
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e176] [cursor=pointer]:
+    - img [ref=e177]
+  - alert [ref=e180]
+```
