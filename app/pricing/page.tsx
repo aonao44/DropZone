@@ -1,4 +1,5 @@
 import Header from "@/components/header"
+import { PricingCards } from "@/components/pricing-cards"
 import { PricingTable } from "@clerk/nextjs"
 import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
@@ -53,6 +54,11 @@ export default async function PricingPage() {
                 </div>
               }
             />
+          </div>
+
+          {/* Detailed Pricing Cards - 詳細な料金プラン */}
+          <div className="max-w-6xl mx-auto mt-16">
+            <PricingCards />
           </div>
 
           {/* FAQ Section */}
