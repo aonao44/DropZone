@@ -2,9 +2,21 @@ import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { generateRandomSlug } from "@/lib/utils";
+import { auth } from "@clerk/nextjs/server";
 
 export async function POST(request: Request) {
   try {
+    // Clerk認証チェック
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse(
+        JSON.stringify({
+          error: "認証が必要です",
+        }),
+        { status: 401 }
+      );
+    }
+
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
     const body = await request.json();
@@ -27,6 +39,7 @@ export async function POST(request: Request) {
         title: body.title,
         client_name: body.name,
         client_email: body.email,
+        user_id: userId, // ClerkのユーザーIDを保存
       })
       .select("id, slug")
       .single();

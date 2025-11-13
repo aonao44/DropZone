@@ -24,12 +24,17 @@ type Project = {
 
 interface DashboardClientProps {
   projects: Project[];
+  hasPremiumAccess: boolean;
 }
 
-export function DashboardClient({ projects }: DashboardClientProps) {
+export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+
+  // プラン別の制限
+  const MAX_PROJECTS = hasPremiumAccess ? 20 : 3;
+  const MAX_FILES_PER_PROJECT = hasPremiumAccess ? 50 : 5;
 
   const handleCopyFormUrl = (slug: string) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -108,6 +113,11 @@ export function DashboardClient({ projects }: DashboardClientProps) {
             </Link>
 
             <nav className="hidden md:flex items-center gap-6">
+              {!hasPremiumAccess && (
+                <Link href="/pricing" className="text-base text-muted-foreground transition-colors hover:text-foreground">
+                  料金
+                </Link>
+              )}
               <Link href="/dashboard" className="text-base text-muted-foreground transition-colors hover:text-foreground">
                 ダッシュボード
               </Link>
@@ -115,6 +125,14 @@ export function DashboardClient({ projects }: DashboardClientProps) {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* 未払い時のみアップグレードボタンを表示 */}
+            {!hasPremiumAccess && (
+              <Link href="/pricing">
+                <Button variant="outline" className="text-base">
+                  プレミアムにアップグレード
+                </Button>
+              </Link>
+            )}
             <Button
               onClick={() => router.push("/dashboard/new")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-base"

@@ -22,9 +22,9 @@ export default async function PricingPage() {
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-slate-100">
         {/* Background Pattern */}
-        <div className="absolute inset-0 bg-dot-pattern pointer-events-none opacity-20"></div>
+        <div className="absolute inset-0 bg-dot-pattern pointer-events-none opacity-20 z-[-1]"></div>
 
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8 py-20">
+        <div className="relative px-4 sm:px-6 lg:px-8 py-20">
           {/* Header Section */}
           <div className="max-w-7xl mx-auto text-center mb-16">
             <div className="inline-block mb-4">
@@ -46,7 +46,7 @@ export default async function PricingPage() {
           <div className="max-w-6xl mx-auto">
             <PricingTable
               for="user"
-              newSubscriptionRedirectUrl="/dashboard"
+              newSubscriptionRedirectUrl="/pricing"
               fallback={
                 <div className="text-center py-12">
                   <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-slate-400 border-r-transparent"></div>

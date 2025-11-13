@@ -1,12 +1,24 @@
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Clerk認証チェック
+    const { userId } = await auth();
+    if (!userId) {
+      return new NextResponse(
+        JSON.stringify({
+          error: "認証が必要です",
+        }),
+        { status: 401 }
+      );
+    }
+
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
     const { id } = await params;
@@ -20,11 +32,12 @@ export async function DELETE(
       );
     }
 
-    // プロジェクトの削除
+    // プロジェクトの削除（所有者チェック付き）
     const { error } = await supabase
       .from("projects")
       .delete()
-      .eq("id", id);
+      .eq("id", id)
+      .eq("user_id", userId); // 所有者のみ削除可能
 
     if (error) {
       console.error("Supabase error:", error);

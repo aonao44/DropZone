@@ -1,8 +1,9 @@
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ProjectDetailClient } from "@/components/ProjectDetailClient";
 import { checkPremiumAccess } from "@/lib/billing";
+import { auth } from "@clerk/nextjs/server";
 
 type Submission = {
   id: string;
@@ -21,6 +22,7 @@ type Project = {
   client_name: string;
   client_email: string;
   created_at: string;
+  user_id: string;
 };
 
 export default async function ProjectViewPage({
@@ -28,18 +30,29 @@ export default async function ProjectViewPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  // Clerk認証チェック
+  const { userId } = await auth();
+  if (!userId) {
+    redirect("/sign-in");
+  }
+
   const cookieStore = cookies();
   const supabase = createClient(cookieStore);
   const { slug } = await params;
 
-  // プロジェクト情報を取得
+  // プロジェクト情報を取得（user_idも含める）
   const { data: project, error: projectError } = await supabase
     .from("projects")
-    .select("id, slug, title, client_name, client_email, created_at")
+    .select("id, slug, title, client_name, client_email, created_at, user_id")
     .eq("slug", slug)
     .single();
 
   if (projectError || !project) {
+    notFound();
+  }
+
+  // 所有者チェック - 自分のプロジェクトでない場合は404
+  if (project.user_id !== userId) {
     notFound();
   }
 
