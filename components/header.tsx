@@ -3,6 +3,7 @@ import Image from "next/image"
 import { UserButton } from "@clerk/nextjs"
 import { auth } from "@clerk/nextjs/server"
 import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 
 export default async function Header() {
   const { userId } = await auth()
@@ -23,9 +24,10 @@ export default async function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center gap-6">
-            <Link href="/pricing" className="text-base text-muted-foreground transition-colors hover:text-foreground">
+            {/* 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化 */}
+            {/* <Link href="/pricing" className="text-base text-muted-foreground transition-colors hover:text-foreground">
               料金
-            </Link>
+            </Link> */}
             {userId && (
               <Link href="/dashboard" className="text-base text-muted-foreground transition-colors hover:text-foreground">
                 ダッシュボード
@@ -36,14 +38,22 @@ export default async function Header() {
 
         <div className="flex items-center gap-4">
           {userId ? (
-            <UserButton
-              afterSignOutUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "h-9 w-9"
-                }
-              }}
-            />
+            <>
+              <Link href="/dashboard/new">
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-base">
+                  <Plus className="mr-2 h-4 w-4" />
+                  新規プロジェクト
+                </Button>
+              </Link>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  elements: {
+                    avatarBox: "h-9 w-9"
+                  }
+                }}
+              />
+            </>
           ) : (
             <>
               <Link href="/sign-in">

@@ -126,40 +126,40 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
             <CardHeader>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <CardTitle className="text-3xl font-bold mb-2">
+                  <CardTitle className="text-2xl font-bold mb-2">
                     {project.title}
                   </CardTitle>
-                  <CardDescription className="text-base">
+                  <CardDescription className="text-sm">
                     依頼者: {project.client_name} ({project.client_email})
                   </CardDescription>
                 </div>
                 <Button
                   onClick={handleCopyFormUrl}
                   variant="outline"
-                  className="border-glow font-semibold px-4 py-3 sm:px-6 sm:py-4 rounded-xl transition-all duration-200 text-sm sm:text-base hover:glow-blue-sm"
+                  className="border-glow font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl transition-all duration-200 text-xs sm:text-sm hover:glow-blue-sm"
                 >
-                  <Copy className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                  <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   フォームURLをコピー
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-muted p-4 rounded-xl">
-                  <p className="text-sm text-muted-foreground mb-1">作成日</p>
-                  <p className="text-lg font-semibold">
+                <div className="bg-muted p-3 rounded-xl">
+                  <p className="text-xs text-muted-foreground mb-1">作成日</p>
+                  <p className="text-base font-semibold">
                     {formatDate(project.created_at)}
                   </p>
                 </div>
-                <div className="bg-muted p-4 rounded-xl">
-                  <p className="text-sm text-muted-foreground mb-1">提出数</p>
-                  <p className="text-lg font-semibold">
+                <div className="bg-muted p-3 rounded-xl">
+                  <p className="text-xs text-muted-foreground mb-1">提出数</p>
+                  <p className="text-base font-semibold">
                     {submissions.length}件
                   </p>
                 </div>
-                <div className="bg-muted p-4 rounded-xl">
-                  <p className="text-sm text-muted-foreground mb-1">総ファイル数</p>
-                  <p className="text-lg font-semibold">
+                <div className="bg-muted p-3 rounded-xl">
+                  <p className="text-xs text-muted-foreground mb-1">総ファイル数</p>
+                  <p className="text-base font-semibold">
                     {submissions.reduce(
                       (total, sub) => total + (Array.isArray(sub.files) ? sub.files.length : 0),
                       0
@@ -175,10 +175,10 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
           <Card className="mb-8 border-glow bg-card transition-all duration-200">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-yellow-500" />
-                <CardTitle className="text-xl">プレミアム機能</CardTitle>
+                <Sparkles className="h-4 w-4 text-yellow-500" />
+                <CardTitle className="text-lg">プレミアム機能</CardTitle>
               </div>
-              <CardDescription>
+              <CardDescription className="text-sm">
                 全ファイルを一括でダウンロードできます
               </CardDescription>
             </CardHeader>
@@ -189,12 +189,43 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                     プレミアムプランをご利用中です。全てのファイルをZIP形式で一括ダウンロードできます。
                   </p>
                   <Button
-                    onClick={() => {
-                      // ZIP一括ダウンロード機能（後で実装）
-                      toast({
-                        title: "ZIP作成中",
-                        description: "ファイルをまとめています...",
-                      });
+                    onClick={async () => {
+                      try {
+                        toast({
+                          title: "ZIP作成中",
+                          description: "ファイルをまとめています...",
+                        });
+
+                        const response = await fetch(
+                          `/api/download-all?projectSlug=${project.slug}`
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("ダウンロードに失敗しました");
+                        }
+
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${project.title}_all_files.zip`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+
+                        toast({
+                          title: "ダウンロード完了",
+                          description: "全てのファイルをZIPでダウンロードしました",
+                        });
+                      } catch (error) {
+                        console.error("Download error:", error);
+                        toast({
+                          title: "エラーが発生しました",
+                          description: "ファイルのダウンロードに失敗しました",
+                          variant: "destructive",
+                        });
+                      }
                     }}
                     className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
                   >
@@ -207,16 +238,17 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                   <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-muted">
                     <Lock className="h-5 w-5 text-muted-foreground mt-0.5" />
                     <div className="flex-1">
+                      {/* 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化 */}
                       <p className="text-sm font-medium mb-1">プレミアムプランが必要です</p>
                       <p className="text-sm text-muted-foreground mb-3">
                         ZIP一括ダウンロード機能を利用するには、プレミアムプランへのアップグレードが必要です。
                       </p>
-                      <Link href="/pricing">
+                      {/* <Link href="/pricing">
                         <Button variant="outline" size="sm" className="border-glow hover:glow-blue-sm">
                           <Sparkles className="mr-2 h-4 w-4" />
                           プレミアムプランを見る
                         </Button>
-                      </Link>
+                      </Link> */}
                     </div>
                   </div>
                 </div>
@@ -226,12 +258,12 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
 
           {/* 提出一覧 */}
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold">提出一覧</h2>
+            <h2 className="text-xl font-bold">提出一覧</h2>
 
             {submissions.length === 0 ? (
               <Card className="border-2 border-dashed border-border rounded-2xl bg-card">
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground text-lg">
+                <CardContent className="py-10 text-center">
+                  <p className="text-muted-foreground text-base">
                     まだ提出がありません
                   </p>
                 </CardContent>
@@ -246,20 +278,20 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                     <CardHeader>
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-xl font-semibold">
+                          <CardTitle className="text-lg font-semibold">
                             {submission.name}
                           </CardTitle>
-                          <CardDescription className="mt-1">
+                          <CardDescription className="mt-1 text-sm">
                             {submission.email}
                           </CardDescription>
                         </div>
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Calendar className="h-4 w-4" />
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
                               {formatDate(submission.created_at)}
                             </div>
-                            <Badge className="mt-1 bg-primary">
+                            <Badge className="mt-1 bg-primary text-xs">
                               {Array.isArray(submission.files) ? submission.files.length : 0}
                               ファイル
                             </Badge>
@@ -274,22 +306,22 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                         {/* ファイル一覧 */}
                         {Array.isArray(submission.files) && submission.files.length > 0 && (
                           <div className="mb-6">
-                            <h4 className="font-semibold mb-3 flex items-center gap-2">
-                              <FileIcon className="h-5 w-5" />
+                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                              <FileIcon className="h-4 w-4" />
                               アップロードファイル
                             </h4>
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="grid grid-cols-1 gap-3">
                               {submission.files.map((file: any, index: number) => (
                                 <div
                                   key={index}
-                                  className="border border-border rounded-xl p-4 hover:border-primary transition-all duration-200 flex flex-col"
+                                  className="border border-border rounded-xl p-3 hover:border-primary transition-all duration-200 flex flex-col"
                                 >
                                   <div className="flex-1 mb-2">
-                                    <p className="font-medium break-words">
+                                    <p className="font-medium break-words text-sm">
                                       {file.name}
                                     </p>
                                     {file.size && (
-                                      <p className="text-sm text-muted-foreground mt-1">
+                                      <p className="text-xs text-muted-foreground mt-1">
                                         {formatFileSize(file.size)}
                                       </p>
                                     )}
@@ -299,7 +331,7 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                                       url={file.url}
                                       fileName={file.name}
                                       variant="default"
-                                      className="w-full gradient-primary hover:glow-blue-sm"
+                                      className="w-full gradient-primary hover:glow-blue-sm text-sm"
                                     />
                                   )}
                                 </div>
@@ -312,21 +344,21 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                         {Array.isArray(submission.figma_links) &&
                           submission.figma_links.length > 0 && (
                             <div>
-                              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                <LinkIcon className="h-5 w-5" />
+                              <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                                <LinkIcon className="h-4 w-4" />
                                 Figmaリンク
                               </h4>
                               <div className="space-y-2">
                                 {submission.figma_links.map((link: string, index: number) => (
                                   <div
                                     key={index}
-                                    className="border border-border rounded-xl p-3 flex items-center justify-between"
+                                    className="border border-border rounded-xl p-2.5 flex items-center justify-between"
                                   >
                                     <a
                                       href={link}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      className="text-primary hover:text-primary/80 hover:underline truncate flex-1 min-w-0"
+                                      className="text-primary hover:text-primary/80 hover:underline truncate flex-1 min-w-0 text-sm"
                                     >
                                       {link}
                                     </a>
@@ -339,9 +371,9 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                                           title: "リンクをコピーしました",
                                         });
                                       }}
-                                      className="ml-2"
+                                      className="ml-2 text-xs"
                                     >
-                                      <Copy className="h-4 w-4" />
+                                      <Copy className="h-3 w-3" />
                                     </Button>
                                   </div>
                                 ))}

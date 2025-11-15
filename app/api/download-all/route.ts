@@ -1,11 +1,21 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import archiver from "archiver";
-import { Readable, PassThrough } from "stream";
+import { PassThrough } from "stream";
 import axios from "axios";
+import { auth } from "@clerk/nextjs/server";
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
+    // Check authentication
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     // Get the projectSlug from query params
     const { searchParams } = new URL(request.url);
     const projectSlug = searchParams.get("projectSlug");
@@ -14,13 +24,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Project slug is required" }, { status: 400 });
     }
 
-    // Initialize Supabase client (public, no auth)
-    const supabase = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Initialize Supabase client with proper auth context
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
 
-    // Fetch all submissions for the project directly
+    // Fetch all submissions for the project
     const { data: submissions, error: submissionsError } = await supabase
       .from("submissions")
       .select("id, name, files")
@@ -35,51 +43,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "No submissions found for this project" }, { status: 404 });
     }
 
-    // Create a PassThrough stream to pipe the archive to
+    // Create a PassThrough stream
     const passThrough = new PassThrough();
 
     // Create an archive
     const archive = archiver("zip", {
-      zlib: { level: 9 }, // Compression level
+      zlib: { level: 9 },
     });
 
     // Pipe the archive to the PassThrough stream
     archive.pipe(passThrough);
 
-    // Keep track of unique filenames to avoid collisions
-    const usedFilenames = new Set();
-
-    // Process each submission and add its files to the archive
+    // Process each submission and add files to archive
     const downloadPromises = submissions.flatMap((submission) => {
       if (!submission.files || !Array.isArray(submission.files) || submission.files.length === 0) {
         return [];
       }
 
-      return submission.files.map(async (file, fileIndex) => {
+      return submission.files.map(async (file: any, fileIndex: number) => {
         try {
           const fileUrl = file.url || file.ufsUrl;
           if (!fileUrl) return;
 
-          // Extract the original filename from the URL
+          // Extract the original filename
           let origFilename = file.name || fileUrl.split("/").pop() || `file-${fileIndex}.dat`;
-
-          // Create a unique filename including the submission ID to avoid collisions
-          let filename = `${submission.id}-${origFilename}`;
-
-          // If we already have this filename, add a counter
-          if (usedFilenames.has(filename)) {
-            let counter = 1;
-            const baseName = filename.substring(0, filename.lastIndexOf(".")) || filename;
-            const extension = filename.substring(filename.lastIndexOf(".")) || "";
-
-            while (usedFilenames.has(`${baseName}-${counter}${extension}`)) {
-              counter++;
-            }
-
-            filename = `${baseName}-${counter}${extension}`;
-          }
-
-          usedFilenames.add(filename);
 
           // Download the file
           const response = await axios({
@@ -88,14 +75,12 @@ export async function GET(request: NextRequest) {
             responseType: "arraybuffer",
           });
 
-          // Add the downloaded file to the archive
+          // Add to archive
           const fileBuffer = Buffer.from(response.data);
-
-          // Create folder structure by submission name
           const submissionFolder = `${submission.name.replace(/[\/\\?%*:|"<>]/g, "_")}`;
           archive.append(fileBuffer, { name: `${submissionFolder}/${origFilename}` });
 
-          return filename;
+          return origFilename;
         } catch (err) {
           console.error(`Error downloading file from submission ${submission.id}:`, err);
           return null;
@@ -103,16 +88,16 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    // Wait for all downloads to complete
+    // Wait for all downloads
     await Promise.all(downloadPromises.filter(Boolean));
 
     // Finalize the archive
     await archive.finalize();
 
-    // Set the appropriate headers for the response
+    // Set filename
     const filename = `${projectSlug}-submissions-${new Date().toISOString().split("T")[0]}.zip`;
 
-    // Convert PassThrough to ReadableStream for Next.js 15
+    // Convert PassThrough to ReadableStream
     const readableStream = new ReadableStream({
       start(controller) {
         passThrough.on('data', (chunk) => {

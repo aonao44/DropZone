@@ -1,21 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Plus } from "lucide-react";
 import { DarkLayout } from "@/components/dark-layout";
+import { UserButton, useUser } from "@clerk/nextjs";
 
 export default function NewProjectPage() {
   const router = useRouter();
+  const { user, isLoaded } = useUser();
   const [title, setTitle] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ログインユーザーの情報を自動入力
+  useEffect(() => {
+    if (isLoaded && user) {
+      // フルネームを取得（firstName + lastName、なければusername）
+      const fullName = user.fullName || user.username || "";
+      // メールアドレスを取得
+      const userEmail = user.primaryEmailAddress?.emailAddress || "";
+
+      setName(fullName);
+      setEmail(userEmail);
+    }
+  }, [isLoaded, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,21 +65,47 @@ export default function NewProjectPage() {
 
   return (
     <DarkLayout>
-      {/* ヘッダー */}
-      <header className="border-b border-slate-700/50 backdrop-blur-sm">
-        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5 lg:py-6">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-extralight tracking-tight text-slate-50 hover:text-slate-300 transition-colors">
-              DropZone
+      {/* ヘッダー - LPと同じデザイン */}
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <div className="w-full flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
+              <Image
+                src="/dropzone-logo.png"
+                alt="DropZone"
+                width={180}
+                height={50}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
-            <Button
-              onClick={() => router.push("/dashboard")}
-              variant="outline"
-              className="border-slate-600 bg-slate-800/50 text-slate-200 hover:bg-slate-700/50 hover:text-slate-50 font-light px-3 py-2 sm:px-6 sm:py-3 rounded-lg transition-all duration-200 text-sm sm:text-base"
-            >
-              <ArrowLeft className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-              戻る
+
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/dashboard" className="text-base text-muted-foreground transition-colors hover:text-foreground">
+                ダッシュボード
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button variant="outline" className="text-base cursor-default hover:bg-transparent">
+              🎉 お試し期間実施中！
             </Button>
+            <Button
+              onClick={() => router.push("/dashboard/new")}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white text-base"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              新規プロジェクト
+            </Button>
+            <UserButton
+              afterSignOutUrl="/"
+              appearance={{
+                elements: {
+                  avatarBox: "h-9 w-9"
+                }
+              }}
+            />
           </div>
         </div>
       </header>
@@ -72,19 +114,19 @@ export default function NewProjectPage() {
       <main className="py-8 sm:py-12 lg:py-16">
         <div className="max-w-xl sm:max-w-2xl lg:max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="bg-slate-800/40 border-slate-700/50 backdrop-blur-sm">
-            <CardHeader className="space-y-2 sm:space-y-3 pb-4 sm:pb-6 p-4 sm:p-6 lg:p-8">
-              <CardTitle className="text-2xl sm:text-3xl lg:text-5xl font-extralight text-center text-slate-50 tracking-tight">
+            <CardHeader className="space-y-2 pb-4 sm:pb-5 p-4 sm:p-5 lg:p-6">
+              <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-extralight text-center text-slate-50 tracking-tight">
                 新規プロジェクト作成
               </CardTitle>
-              <CardDescription className="text-sm sm:text-base lg:text-xl text-center leading-relaxed text-slate-300 font-light">
+              <CardDescription className="text-xs sm:text-sm lg:text-base text-center leading-relaxed text-slate-300 font-light">
                 プロジェクト情報を入力して、専用の提出フォームを発行しましょう
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-4 sm:p-6 lg:p-8">
-              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6 lg:space-y-8">
+            <CardContent className="p-4 sm:p-5 lg:p-6">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 {/* プロジェクト名 */}
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-sm sm:text-base lg:text-xl font-light text-slate-200">
+                  <Label htmlFor="title" className="text-xs sm:text-sm lg:text-base font-light text-slate-200">
                     プロジェクト名 <span className="text-slate-400">*</span>
                   </Label>
                   <Input
@@ -94,52 +136,23 @@ export default function NewProjectPage() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     required
-                    className="h-10 sm:h-12 lg:h-16 text-sm sm:text-base lg:text-xl bg-slate-700/30 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:ring-slate-500"
+                    className="h-9 sm:h-10 lg:h-11 text-xs sm:text-sm lg:text-base bg-slate-700/30 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:ring-slate-500"
                   />
-                </div>
-
-                {/* 依頼者名 */}
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="text-sm sm:text-base lg:text-xl font-light text-slate-200">
-                    依頼者名 <span className="text-slate-400">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    placeholder="例: 山田 太郎"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    className="h-10 sm:h-12 lg:h-16 text-sm sm:text-base lg:text-xl bg-slate-700/30 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:ring-slate-500"
-                  />
-                </div>
-
-                {/* 依頼者メールアドレス */}
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm sm:text-base lg:text-xl font-light text-slate-200">
-                    依頼者メールアドレス <span className="text-slate-400">*</span>
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="例: yamada@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    className="h-10 sm:h-12 lg:h-16 text-sm sm:text-base lg:text-xl bg-slate-700/30 border-slate-600 text-slate-100 placeholder:text-slate-500 focus:border-slate-500 focus:ring-slate-500"
-                  />
+                  <p className="text-xs text-slate-400 font-light">
+                    依頼者情報はログイン情報から自動的に設定されます
+                  </p>
                 </div>
 
                 {/* 送信ボタン */}
-                <div className="pt-4 sm:pt-6">
+                <div className="pt-3 sm:pt-4">
                   <Button
                     type="submit"
-                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-4 py-3 sm:px-6 sm:py-4 lg:px-8 lg:py-6 rounded-lg transition-all duration-200 text-base sm:text-lg lg:text-2xl hover:scale-105"
+                    className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 font-medium px-4 py-2.5 sm:px-5 sm:py-3 lg:px-6 lg:py-4 rounded-lg transition-all duration-200 text-sm sm:text-base lg:text-lg hover:scale-105"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
                         作成中...
                       </>
                     ) : (

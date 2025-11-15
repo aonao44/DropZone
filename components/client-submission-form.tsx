@@ -286,9 +286,9 @@ export function ClientSubmissionForm({
               </Button>
             </div>
             <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-              <CardTitle className="text-xl sm:text-2xl lg:text-4xl font-extralight tracking-tight text-slate-50">提出ログ一覧</CardTitle>
+              <CardTitle className="text-lg sm:text-xl lg:text-2xl font-extralight tracking-tight text-slate-50">提出ログ一覧</CardTitle>
             </div>
-            <CardDescription className="text-center text-sm sm:text-base lg:text-lg text-slate-300 font-light">過去の素材提出履歴を確認できます</CardDescription>
+            <CardDescription className="text-center text-xs sm:text-sm lg:text-base text-slate-300 font-light">過去の素材提出履歴を確認できます</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 lg:p-8">
             <SubmissionLogs isDark={true} projectSlug={projectSlug} />
@@ -310,27 +310,27 @@ export function ClientSubmissionForm({
         >
           <Card className={themeClasses.card}>
             <div className="absolute inset-0 bg-dot-pattern opacity-5 rounded-lg pointer-events-none"></div>
-            <CardHeader className="pb-2 p-4 sm:p-6 lg:p-8">
-              <div className="flex flex-col items-center space-y-3 sm:space-y-4 mb-2">
-                <CardTitle className="text-2xl sm:text-3xl lg:text-5xl font-extralight tracking-tight mt-2 text-slate-50">素材提出フォーム</CardTitle>
+            <CardHeader className="pb-2 p-3 sm:p-4 lg:p-5">
+              <div className="flex flex-col items-center space-y-2 sm:space-y-2.5 mb-1">
+                <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-extralight tracking-tight mt-1 text-slate-50">素材提出フォーム</CardTitle>
               </div>
-              <CardDescription className="text-center text-sm sm:text-base lg:text-lg text-slate-300 font-light">
+              <CardDescription className="text-center text-xs sm:text-sm lg:text-base text-slate-300 font-light">
                 プロジェクトに必要な素材をアップロードしてください
               </CardDescription>
               {showHistoryButton && (
-                <div className="flex justify-center mt-2 sm:mt-4">
+                <div className="flex justify-center mt-2 sm:mt-3">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setViewingLogs(true)}
-                    className={`${themeClasses.logButton} border-dashed text-sm sm:text-base lg:text-xl py-2 px-4 sm:py-3 sm:px-6 lg:py-4 lg:px-8`}
+                    className={`${themeClasses.logButton} border-dashed text-xs sm:text-sm lg:text-base py-1.5 px-3 sm:py-2 sm:px-4 lg:py-2.5 lg:px-5`}
                   >
-                    <History className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> 履歴を確認
+                    <History className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> 履歴を確認
                   </Button>
                 </div>
               )}
             </CardHeader>
-            <CardContent className="p-4 sm:p-6 lg:p-8">
+            <CardContent className="p-3 sm:p-4 lg:p-5">
               {showFileLimitError && (
                 <div className={`${themeClasses.alert} p-3 sm:p-4 rounded-lg mb-4 flex items-center gap-2`}>
                   <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -341,28 +341,28 @@ export function ClientSubmissionForm({
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5 lg:space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-3.5 lg:space-y-4">
                 {/* プロジェクト情報カード */}
                 {projectInfo && (
-                  <div className={`space-y-2 rounded-lg ${themeClasses.section} p-4 sm:p-5 lg:p-6 border border-dashed backdrop-blur-sm`}>
-                    <h3 className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.text}`}>プロジェクト情報</h3>
-                    <p className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText}`}>プロジェクト名: {projectInfo.title}</p>
-                    <p className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText}`}>依頼者: {projectInfo.requesterName}</p>
-                    <p className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText}`}>メール: {projectInfo.requesterEmail}</p>
-                    <p className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText}`}>
+                  <div className={`space-y-1.5 rounded-lg ${themeClasses.section} p-2.5 sm:p-3 lg:p-4 border border-dashed backdrop-blur-sm`}>
+                    <h3 className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.text}`}>プロジェクト情報</h3>
+                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>プロジェクト名: {projectInfo.title}</p>
+                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>依頼者: {projectInfo.requesterName}</p>
+                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>メール: {projectInfo.requesterEmail}</p>
+                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>
                       発行日: {new Date(projectInfo.createdAt).toLocaleDateString("ja-JP")}
                     </p>
                   </div>
                 )}
                 {/* 提出者情報セクション */}
-                <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 sm:p-5 lg:p-6 border border-dashed backdrop-blur-sm`}>
-                  <h3 className={`text-sm sm:text-base lg:text-lg font-light flex items-center gap-1.5 ${themeClasses.text}`}>
-                    <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                <div className="space-y-3 rounded-lg bg-blue-500/10 border border-blue-500/30 p-2.5 sm:p-3 lg:p-4 border-dashed backdrop-blur-sm">
+                  <h3 className="text-xs sm:text-sm lg:text-base font-light flex items-center gap-1.5 text-blue-300">
+                    <User className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
                     提出者情報
                   </h3>
 
                   <div className="space-y-2">
-                    <Label htmlFor="name" className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText}`}>
+                    <Label htmlFor="name" className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>
                       お名前 <span className="text-slate-400">*</span>
                     </Label>
                     <Input
@@ -372,16 +372,16 @@ export function ClientSubmissionForm({
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
-                      className={`${themeClasses.input} text-base sm:text-lg lg:text-xl h-10 sm:h-12 lg:h-16`}
+                      className={`${themeClasses.input} text-sm sm:text-base lg:text-lg h-9 sm:h-10 lg:h-11`}
                     />
                   </div>
 
                   <div className="space-y-2">
                     <Label
                       htmlFor="email"
-                      className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText} flex items-center gap-1.5`}
+                      className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText} flex items-center gap-1.5`}
                     >
-                      <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                      <Mail className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
                       メールアドレス <span className="text-slate-400">*</span>
                     </Label>
                     <Input
@@ -391,20 +391,22 @@ export function ClientSubmissionForm({
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className={`${themeClasses.input} text-base sm:text-lg lg:text-xl h-10 sm:h-12 lg:h-16`}
+                      className={`${themeClasses.input} text-sm sm:text-base lg:text-lg h-9 sm:h-10 lg:h-11`}
                     />
                   </div>
                 </div>
 
                 {/* ファイルアップロードセクション */}
-                <div className={`space-y-4 rounded-lg ${themeClasses.section} p-4 sm:p-5 lg:p-6 border border-dashed backdrop-blur-sm`}>
-                  <h3 className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.text} flex items-center gap-1.5`}>
-                    <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-5 lg:w-5" />
+                <div className="space-y-2.5 rounded-lg bg-blue-500/10 border border-blue-500/30 p-2.5 sm:p-3 lg:p-4 border-dashed backdrop-blur-sm">
+                  <h3 className="text-xs sm:text-sm lg:text-base font-light text-blue-300 flex items-center gap-1.5">
+                    <Upload className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
                     ファイルアップロード{" "}
-                    <span className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>(プロジェクト当たり最大10ファイル)</span>
+                    <span className="text-xs sm:text-xs lg:text-sm font-light text-slate-400">
+                      (プロジェクト当たり最大10ファイル 現在選択: {logoFiles.length}/10)
+                    </span>
                   </h3>
                   {existingFileCount > 0 && (
-                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>既存ファイル数: {existingFileCount} / 10</p>
+                    <p className={`text-xs sm:text-xs lg:text-sm font-light ${themeClasses.mutedText}`}>既存ファイル数: {existingFileCount} / 10</p>
                   )}
                   <FileUploader
                     id="logo-upload"
@@ -420,8 +422,8 @@ export function ClientSubmissionForm({
 
                 {/* Figmaリンクセクション */}
                 <div className="space-y-2">
-                  <Label htmlFor="figma-url" className={`text-sm sm:text-base lg:text-lg font-light ${themeClasses.mutedText}`}>
-                    Figmaリンク <span className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>(任意)</span>
+                  <Label htmlFor="figma-url" className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>
+                    Figmaリンク <span className={`text-xs sm:text-xs lg:text-sm font-light ${themeClasses.mutedText}`}>(任意)</span>
                   </Label>
                   <Input
                     id="figma-url"
@@ -429,13 +431,13 @@ export function ClientSubmissionForm({
                     placeholder="https://figma.com/file/..."
                     value={figmaUrl}
                     onChange={(e) => setFigmaUrl(e.target.value)}
-                    className={`${themeClasses.input} text-base sm:text-lg lg:text-xl h-10 sm:h-12 lg:h-16`}
+                    className={`${themeClasses.input} text-sm sm:text-base lg:text-lg h-9 sm:h-10 lg:h-11`}
                   />
                 </div>
 
                 <Button
                   type="submit"
-                  className={`w-full ${themeClasses.button} py-4 sm:py-6 lg:py-10 text-base sm:text-lg lg:text-2xl transition-all duration-200`}
+                  className={`w-full ${themeClasses.button} py-3 sm:py-4 lg:py-5 text-sm sm:text-base lg:text-lg transition-all duration-200`}
                   disabled={isUploading || isUploadingFile || !name}
                 >
                   {isUploading || isUploadingFile ? (
@@ -459,52 +461,52 @@ export function ClientSubmissionForm({
           className="w-full max-w-md sm:max-w-lg lg:max-w-2xl mx-auto px-4 sm:px-6"
         >
           <Card className={themeClasses.card}>
-            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-10 lg:py-16 p-4 sm:p-6 lg:p-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-500/20 rounded-full mb-4 sm:mb-6 backdrop-blur-sm border border-green-500/30">
-                <CheckCircle className="h-10 w-10 sm:h-12 sm:w-12 lg:h-16 lg:w-16 text-green-400" />
+            <CardContent className="flex flex-col items-center justify-center py-6 sm:py-8 lg:py-10 p-4 sm:p-5 lg:p-6">
+              <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-green-500/20 rounded-full mb-4 sm:mb-5 backdrop-blur-sm border border-green-500/30">
+                <CheckCircle className="h-8 w-8 sm:h-10 sm:w-10 lg:h-12 lg:w-12 text-green-400" />
               </div>
-              <h2 className={`text-xl sm:text-2xl lg:text-4xl font-extralight mb-3 sm:mb-4 ${themeClasses.text}`}>提出完了</h2>
-              <p className={`text-center mb-4 sm:mb-6 lg:mb-8 text-sm sm:text-base lg:text-xl font-light ${themeClasses.mutedText}`}>
+              <h2 className={`text-lg sm:text-xl lg:text-2xl font-extralight mb-3 ${themeClasses.text}`}>提出完了</h2>
+              <p className={`text-center mb-4 sm:mb-5 lg:mb-6 text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>
                 素材の提出を受け付けました。ありがとうございます！
               </p>
 
-              <div className="flex flex-col gap-2 sm:gap-3 w-full max-w-[280px] sm:max-w-[350px] lg:max-w-[450px]">
-                <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg backdrop-blur-sm`}>
-                  <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>提出者</p>
-                  <p className={`text-sm sm:text-base lg:text-xl font-light ${themeClasses.text}`}>{name}</p>
+              <div className="flex flex-col gap-2 w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[380px]">
+                <div className={`${themeClasses.logCard} p-2.5 sm:p-3 lg:p-4 rounded-lg backdrop-blur-sm`}>
+                  <p className={`text-xs sm:text-xs lg:text-sm font-light ${themeClasses.mutedText}`}>提出者</p>
+                  <p className={`text-sm sm:text-sm lg:text-base font-light ${themeClasses.text}`}>{name}</p>
                 </div>
                 {email && (
-                  <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg backdrop-blur-sm`}>
-                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText}`}>メールアドレス</p>
-                    <p className={`text-sm sm:text-base lg:text-xl font-light ${themeClasses.text}`}>{email}</p>
+                  <div className={`${themeClasses.logCard} p-2.5 sm:p-3 lg:p-4 rounded-lg backdrop-blur-sm`}>
+                    <p className={`text-xs sm:text-xs lg:text-sm font-light ${themeClasses.mutedText}`}>メールアドレス</p>
+                    <p className={`text-sm sm:text-sm lg:text-base font-light ${themeClasses.text}`}>{email}</p>
                   </div>
                 )}
-                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                  <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg backdrop-blur-sm`}>
-                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText} flex items-center gap-1`}>
-                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                <div className="grid grid-cols-2 gap-2">
+                  <div className={`${themeClasses.logCard} p-2.5 sm:p-3 lg:p-4 rounded-lg backdrop-blur-sm`}>
+                    <p className={`text-xs sm:text-xs lg:text-sm font-light ${themeClasses.mutedText} flex items-center gap-1`}>
+                      <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       提出日
                     </p>
-                    <p className={`text-xs sm:text-sm lg:text-lg font-light ${themeClasses.text}`}>{submissionDate}</p>
+                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.text}`}>{submissionDate}</p>
                   </div>
-                  <div className={`${themeClasses.logCard} p-3 sm:p-4 lg:p-5 rounded-lg backdrop-blur-sm`}>
-                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.mutedText} flex items-center gap-1`}>
-                      <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <div className={`${themeClasses.logCard} p-2.5 sm:p-3 lg:p-4 rounded-lg backdrop-blur-sm`}>
+                    <p className={`text-xs sm:text-xs lg:text-sm font-light ${themeClasses.mutedText} flex items-center gap-1`}>
+                      <Clock className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       時間
                     </p>
-                    <p className={`text-xs sm:text-sm lg:text-lg font-light ${themeClasses.text}`}>{submissionTime}</p>
+                    <p className={`text-xs sm:text-sm lg:text-base font-light ${themeClasses.text}`}>{submissionTime}</p>
                   </div>
                 </div>
               </div>
             </CardContent>
-            <div className="flex justify-center mt-4 sm:mt-6 pb-6">
+            <div className="flex justify-center mt-3 sm:mt-4 pb-5">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setViewingLogs(true)}
-                className={`${themeClasses.logButton} border-dashed text-sm sm:text-base lg:text-lg py-2 px-4 sm:py-3 sm:px-6`}
+                className={`${themeClasses.logButton} border-dashed text-xs sm:text-sm lg:text-base py-2 px-3 sm:py-2.5 sm:px-4`}
               >
-                <History className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" /> 履歴を確認
+                <History className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" /> 履歴を確認
               </Button>
             </div>
           </Card>

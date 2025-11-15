@@ -19,11 +19,12 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-sm font-semibold">プロダクト</h3>
             <ul className="space-y-3 text-sm">
-              <li>
+              {/* 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化 */}
+              {/* <li>
                 <Link href="/pricing" className="text-muted-foreground transition-colors hover:text-foreground">
                   料金
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link href="/dashboard" className="text-muted-foreground transition-colors hover:text-foreground">
                   ダッシュボード

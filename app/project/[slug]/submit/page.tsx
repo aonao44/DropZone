@@ -25,7 +25,7 @@ export default async function SubmitPage({ params }: { params: Promise<{ slug: s
 
   return (
     <DarkLayout>
-      <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen flex items-center justify-center py-4 sm:py-6 lg:py-8 px-4">
         <ClientSubmissionForm
           projectSlug={slug}
           showHistoryButton={true}

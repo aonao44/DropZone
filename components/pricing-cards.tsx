@@ -27,8 +27,9 @@ const plans: PricingPlan[] = [
       "自動バリデーション",
       "ダッシュボード",
       "個別ファイルダウンロード",
-      "プロジェクト: 3 件まで",
-      "ファイル数: 5 件まで",
+      // 🚨 一時的に変更: お試し期間用に制限を緩和（旧: 3件、5件）
+      "プロジェクト: 10 件まで",
+      "ファイル数: 20 件まで",
     ],
     cta: "無料で始める",
     ctaLink: "/sign-up",
@@ -62,36 +63,36 @@ export function PricingCards() {
         return (
           <div
             key={plan.name}
-            className="relative rounded-2xl p-8 shadow-sm"
+            className="relative rounded-2xl p-6 shadow-sm"
             style={{
               backgroundColor: '#f3f4f6',
               border: 'none'
             }}
           >
-            <div className="mb-6">
-              <h3 className="text-2xl font-semibold mb-3 text-gray-900">
+            <div className="mb-5">
+              <h3 className="text-xl font-semibold mb-2 text-gray-900">
                 {plan.name}
               </h3>
 
               <div className="flex items-baseline gap-1 mb-2">
-                <span className="text-5xl font-light text-gray-900">
+                <span className="text-4xl font-light text-gray-900">
                   {plan.price}
                 </span>
                 {plan.price !== "$0" && (
-                  <span className="text-base text-gray-600"> /month</span>
+                  <span className="text-sm text-gray-600"> /month</span>
                 )}
               </div>
 
-              <p className="text-sm text-gray-600">
+              <p className="text-xs text-gray-600">
                 {plan.description}
               </p>
             </div>
 
-            <div className="mb-6 h-px bg-gray-300"></div>
+            <div className="mb-5 h-px bg-gray-300"></div>
 
-            <ul className="space-y-3">
+            <ul className="space-y-2.5">
               {plan.features.map((feature) => (
-                <li key={feature} className="text-sm leading-relaxed text-gray-700">
+                <li key={feature} className="text-xs leading-relaxed text-gray-700">
                   {feature}
                 </li>
               ))}

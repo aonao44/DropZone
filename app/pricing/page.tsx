@@ -9,6 +9,13 @@ export const metadata = {
   description: "DropZoneの料金プランをご確認ください。無料プランから始めて、必要に応じてアップグレードできます。",
 }
 
+// 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化しています
+// 料金ページへのアクセスをホームページにリダイレクト
+export default async function PricingPage() {
+  redirect("/")
+}
+
+/* 元のコードは課金機能再開時に使用します
 export default async function PricingPage() {
   // 認証チェック - ログインしている必要がある
   const { userId } = await auth()
@@ -21,11 +28,11 @@ export default async function PricingPage() {
     <>
       <Header />
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-black to-slate-800 text-slate-100">
-        {/* Background Pattern */}
+        {/* Background Pattern *}
         <div className="absolute inset-0 bg-dot-pattern pointer-events-none opacity-20 z-[-1]"></div>
 
         <div className="relative px-4 sm:px-6 lg:px-8 py-20">
-          {/* Header Section */}
+          {/* Header Section *}
           <div className="max-w-7xl mx-auto text-center mb-16">
             <div className="inline-block mb-4">
               <span className="text-sm font-mono uppercase tracking-widest text-slate-400 bg-slate-800/50 px-4 py-2 rounded-full border border-slate-700">
@@ -42,7 +49,7 @@ export default async function PricingPage() {
             </p>
           </div>
 
-          {/* Clerk Billing Pricing Table */}
+          {/* Clerk Billing Pricing Table *}
           <div className="max-w-6xl mx-auto">
             <PricingTable
               for="user"
@@ -56,12 +63,12 @@ export default async function PricingPage() {
             />
           </div>
 
-          {/* Detailed Pricing Cards - 詳細な料金プラン */}
+          {/* Detailed Pricing Cards - 詳細な料金プラン *}
           <div className="max-w-6xl mx-auto mt-16">
             <PricingCards />
           </div>
 
-          {/* FAQ Section */}
+          {/* FAQ Section *}
           <div className="max-w-4xl mx-auto mt-24">
             <h2 className="text-3xl sm:text-4xl font-light text-center mb-12 text-slate-50">
               よくある質問
@@ -105,7 +112,7 @@ export default async function PricingPage() {
             </div>
           </div>
 
-          {/* CTA Section */}
+          {/* CTA Section *}
           <div className="max-w-4xl mx-auto mt-24 text-center">
             <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border border-slate-700/50 rounded-3xl p-12">
               <h2 className="text-3xl sm:text-4xl font-light text-slate-50 mb-4">
@@ -128,3 +135,4 @@ export default async function PricingPage() {
     </>
   )
 }
+*/
