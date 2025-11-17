@@ -20,6 +20,7 @@ type Project = {
   client_email: string;
   created_at: string;
   submission_count: number;
+  file_count: number;
 };
 
 interface DashboardClientProps {
@@ -200,12 +201,9 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
                         ></div>
                         <span className="text-xs sm:text-sm font-light text-slate-200">
                           {project.submission_count > 0
-                            ? `${project.submission_count}件の提出`
+                            ? `${project.submission_count}回の提出 ${project.file_count}ファイル`
                             : "未提出"}
                         </span>
-                      </div>
-                      <div className="text-xs text-slate-400 font-light">
-                        依頼者: {project.client_name}
                       </div>
                     </div>
                   </CardContent>

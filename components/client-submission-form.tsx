@@ -33,18 +33,20 @@ export function ClientSubmissionForm({
   projectSlug = "",
   showHistoryButton = true,
   projectInfo,
+  previousSubmitter,
 }: {
   projectSlug?: string;
   showHistoryButton?: boolean;
   projectInfo?: ProjectInfo;
+  previousSubmitter?: { name: string; email: string } | null;
 }) {
   const router = useRouter();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [figmaUrl, setFigmaUrl] = useState("");
   const [logoFiles, setLogoFiles] = useState<File[]>([]);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(previousSubmitter?.name || "");
+  const [email, setEmail] = useState(previousSubmitter?.email || "");
   const [submissionTime, setSubmissionTime] = useState("");
   const [submissionDate, setSubmissionDate] = useState("");
   const [viewingLogs, setViewingLogs] = useState(false);
