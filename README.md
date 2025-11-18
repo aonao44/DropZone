@@ -48,3 +48,67 @@ cd DropZone
 ```
 
 2. `.env.example` を参考に `.env` ファイルを作成し、API キーなどを設定
+
+3. 依存関係をインストール
+
+```bash
+npm install
+```
+
+4. 開発サーバーを起動
+
+```bash
+npm run dev
+```
+
+ブラウザで http://localhost:3000 を開いてください。
+
+---
+
+## 🚀 Vercel へのデプロイ
+
+### 環境変数の設定
+
+Vercel にデプロイする際は、以下の環境変数を **必ず設定** してください:
+
+| 環境変数名 | 説明 | 取得方法 |
+|-----------|------|---------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk の公開鍵 | [Clerk Dashboard](https://dashboard.clerk.com) の API Keys ページから取得 |
+| `CLERK_SECRET_KEY` | Clerk のシークレットキー | 同上 |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase プロジェクト URL | [Supabase Dashboard](https://app.supabase.com) の Settings > API から取得 |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase の匿名キー | 同上 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase のサービスロールキー | 同上（管理者権限が必要な操作用） |
+| `UPLOADTHING_SECRET` | UploadThing のシークレットキー | [UploadThing Dashboard](https://uploadthing.com/dashboard) から取得 |
+| `NEXT_PUBLIC_APP_URL` | デプロイ先の URL | `https://your-app.vercel.app` |
+
+### デプロイ手順
+
+1. Vercel にログイン: https://vercel.com
+2. GitHub リポジトリを接続
+3. プロジェクトをインポート
+4. **Settings > Environment Variables** で上記の環境変数をすべて設定
+5. **Deploy** ボタンをクリック
+
+### 重要な注意事項
+
+⚠️ **環境変数が設定されていない場合、ビルドが失敗します**
+
+特に以下のエラーが出る場合は、環境変数が正しく設定されているか確認してください:
+
+```
+Error: @clerk/clerk-react: Missing publishableKey
+```
+
+→ `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` が設定されていません
+
+### トラブルシューティング
+
+- **ビルドエラーが出る場合**: Vercel の環境変数がすべて設定されているか確認
+- **認証が動作しない場合**: Clerk Dashboard で許可されたドメインに Vercel の URL を追加
+- **ファイルアップロードが失敗する場合**: UploadThing Dashboard で Vercel の URL を許可リストに追加
+
+---
+
+## 📝 ライセンス
+
+MIT License

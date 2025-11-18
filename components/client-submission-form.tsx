@@ -45,8 +45,8 @@ export function ClientSubmissionForm({
   const [isUploading, setIsUploading] = useState(false);
   const [figmaUrl, setFigmaUrl] = useState("");
   const [logoFiles, setLogoFiles] = useState<File[]>([]);
-  const [name, setName] = useState(previousSubmitter?.name || "");
-  const [email, setEmail] = useState(previousSubmitter?.email || "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [submissionTime, setSubmissionTime] = useState("");
   const [submissionDate, setSubmissionDate] = useState("");
   const [viewingLogs, setViewingLogs] = useState(false);
@@ -57,11 +57,28 @@ export function ClientSubmissionForm({
   // React Strict Modeによる重複実行を防ぐフラグ
   const isSubmittingRef = useRef(false);
 
+  // LocalStorage key for submitter information
+  const SUBMITTER_INFO_KEY = 'dropzone_submitter_info';
+
   // Initialize Supabase client (client-side)
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL || "",
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
   );
+
+  // Load submitter information from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedInfo = localStorage.getItem(SUBMITTER_INFO_KEY);
+      if (savedInfo) {
+        const { name: savedName, email: savedEmail } = JSON.parse(savedInfo);
+        if (savedName) setName(savedName);
+        if (savedEmail) setEmail(savedEmail);
+      }
+    } catch (error) {
+      console.error('Error loading submitter information from localStorage:', error);
+    }
+  }, []);
 
   // 既存ファイル数を取得する関数を共通化
   const fetchExistingFileCount = async (slug: string) => {
@@ -168,6 +185,13 @@ export function ClientSubmissionForm({
       });
 
       if (response.ok) {
+        // 提出成功時に提出者情報をlocalStorageに保存
+        try {
+          localStorage.setItem(SUBMITTER_INFO_KEY, JSON.stringify({ name, email }));
+        } catch (error) {
+          console.error('Error saving submitter information to localStorage:', error);
+        }
+
         // 送信完了後、最新のファイル数を再取得
         await fetchExistingFileCount(projectSlug);
         // ファイルリストをクリア

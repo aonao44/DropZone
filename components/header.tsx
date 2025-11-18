@@ -37,6 +37,15 @@ export default async function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* お試し期間バッジ - 常に表示 */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-transparent text-white border-white/20 hover:bg-white/10 text-sm font-medium"
+          >
+            🎉 お試し期間実施中！
+          </Button>
+
           {userId ? (
             <>
               <Link href="/dashboard/new">
