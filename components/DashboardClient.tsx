@@ -34,11 +34,8 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
 
   // プラン別の制限
-  // 🚨 一時的に変更: お試し期間用に制限を緩和
-  // 旧: const MAX_PROJECTS = hasPremiumAccess ? 20 : 3;
-  // 旧: const MAX_FILES_PER_PROJECT = hasPremiumAccess ? 50 : 5;
-  const MAX_PROJECTS = hasPremiumAccess ? 20 : 10;
-  const MAX_FILES_PER_PROJECT = hasPremiumAccess ? 50 : 20;
+  const MAX_PROJECTS = hasPremiumAccess ? 20 : 3;
+  const MAX_FILES_PER_PROJECT = hasPremiumAccess ? 50 : 10;
 
   const handleCopyFormUrl = (slug: string) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
