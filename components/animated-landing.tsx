@@ -203,9 +203,9 @@ export function AnimatedLanding() {
           <div className="text-center w-full px-4 sm:px-6 lg:px-8 relative">
             <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extralight leading-tight tracking-tight text-slate-50">
               <div className="mb-6 md:mb-8">
-                <span className="word-animate" data-delay="700">ファイル提出、</span>
-                <span className="word-animate" data-delay="850">もう</span>
-                <span className="word-animate" data-delay="1000">迷わない。</span>
+                <span className="word-animate" data-delay="700">File</span>
+                <span className="word-animate" data-delay="850">Submission,</span>
+                <span className="word-animate" data-delay="1000">Simplified.</span>
               </div>
               <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-thin text-slate-300 leading-relaxed tracking-wide">
                 <span className="word-animate" data-delay="1400">デザイナーと</span>
@@ -225,11 +225,95 @@ export function AnimatedLanding() {
               >
                 <Link href="/dashboard">無料ではじめる</Link>
               </Button>
+
+              {/* Trial Period Notice */}
+              <div className="mt-6 text-sm sm:text-base text-slate-400 font-light">
+                <p className="mb-1">🎉 お試し期間実施中！</p>
+                <p className="text-xs sm:text-sm text-slate-500">
+                  3プロジェクト × 10ファイル (1ファイル最大8MB) まで無料
+                </p>
+              </div>
             </div>
 
             {/* Side Lines */}
             <div className="absolute -left-6 sm:-left-8 top-1/2 transform -translate-y-1/2 w-3 sm:w-4 h-px bg-slate-300 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '3.2s' }}></div>
             <div className="absolute -right-6 sm:-right-8 top-1/2 transform -translate-y-1/2 w-3 sm:w-4 h-px bg-slate-300 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '3.4s' }}></div>
+          </div>
+
+          {/* How It Works Section */}
+          <div className="w-full max-w-6xl mx-auto mt-32 mb-20 px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extralight text-slate-50 mb-4 tracking-tight">
+                使い方
+              </h2>
+              <div className="w-16 h-px bg-gradient-to-r from-transparent via-slate-300 to-transparent opacity-30 mx-auto"></div>
+            </div>
+
+            {/* Client Flow */}
+            <div className="mb-20">
+              <h3 className="text-xl sm:text-2xl font-light text-slate-100 mb-8 text-center">
+                クライアント側
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:bg-slate-800/40 transition-all duration-300">
+                  <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mb-4 border border-emerald-500/30">
+                    <span className="text-2xl font-light text-emerald-400">1</span>
+                  </div>
+                  <h4 className="text-lg font-light text-slate-100 mb-2">プロジェクト作成</h4>
+                  <p className="text-sm text-slate-400 font-light leading-relaxed">
+                    新規プロジェクトを作成。デザイナー情報を入力するだけ。
+                  </p>
+                </div>
+
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:bg-slate-800/40 transition-all duration-300">
+                  <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mb-4 border border-emerald-500/30">
+                    <span className="text-2xl font-light text-emerald-400">2</span>
+                  </div>
+                  <h4 className="text-lg font-light text-slate-100 mb-2">URLを共有</h4>
+                  <p className="text-sm text-slate-400 font-light leading-relaxed">
+                    生成された提出フォームURLをコピーして、デザイナーに送信。
+                  </p>
+                </div>
+
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:bg-slate-800/40 transition-all duration-300">
+                  <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mb-4 border border-emerald-500/30">
+                    <span className="text-2xl font-light text-emerald-400">3</span>
+                  </div>
+                  <h4 className="text-lg font-light text-slate-100 mb-2">提出を確認</h4>
+                  <p className="text-sm text-slate-400 font-light leading-relaxed">
+                    デザイナーが提出したファイルをダッシュボードで確認・ダウンロード。
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Designer Flow */}
+            <div>
+              <h3 className="text-xl sm:text-2xl font-light text-slate-100 mb-8 text-center">
+                デザイナー側
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:bg-slate-800/40 transition-all duration-300">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mb-4 border border-blue-500/30">
+                    <span className="text-2xl font-light text-blue-400">1</span>
+                  </div>
+                  <h4 className="text-lg font-light text-slate-100 mb-2">URLにアクセス</h4>
+                  <p className="text-sm text-slate-400 font-light leading-relaxed">
+                    クライアントから送られたURLをクリックして、提出フォームを開く。
+                  </p>
+                </div>
+
+                <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:bg-slate-800/40 transition-all duration-300">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center mb-4 border border-blue-500/30">
+                    <span className="text-2xl font-light text-blue-400">2</span>
+                  </div>
+                  <h4 className="text-lg font-light text-slate-100 mb-2">ファイルをアップロード</h4>
+                  <p className="text-sm text-slate-400 font-light leading-relaxed">
+                    ドラッグ&ドロップまたはクリックで、ファイルを簡単にアップロード。
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Bottom Section */}
@@ -240,11 +324,6 @@ export function AnimatedLanding() {
               <span className="word-animate" data-delay="3200">organized,</span>
               <span className="word-animate" data-delay="3400">seamless.</span>
             </h2>
-            <div className="mt-7 flex justify-center space-x-5 opacity-0" style={{ animation: 'word-appear 1s ease-out forwards', animationDelay: '4.2s' }}>
-              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40"></div>
-              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full opacity-60"></div>
-              <div className="w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40"></div>
-            </div>
           </div>
         </div>
 

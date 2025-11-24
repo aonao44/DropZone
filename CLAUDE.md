@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project Overview
 
-**DropZone** is a modern file-sharing service built with Next.js that allows designers to create projects and receive file submissions from clients. The application features a designer dashboard, client submission forms, and secure file management with UploadThing and Supabase.
+**DropZone** is a modern file-sharing service built with Next.js that allows clients to create projects and receive file submissions from designers. The application features a client dashboard, designer-friendly file submission forms, and secure file management with UploadThing and Supabase.
 
 ### Key Features
-- Designer dashboard for project management
-- Client-friendly file submission interface
+- Client dashboard for project management
+- Designer-friendly file submission interface
 - Secure authentication with Clerk
 - File storage and management with UploadThing
 - Database powered by Supabase
@@ -71,11 +71,11 @@ DropZone/
 │   │   ├── submissions/         # Submission management
 │   │   ├── download-all/        # Batch download endpoint
 │   │   └── uploadthing/         # File upload configuration
-│   ├── dashboard/               # Designer dashboard (auth required)
+│   ├── dashboard/               # Client dashboard (auth required)
 │   │   ├── new/                # New project creation
 │   │   └── page.tsx            # Dashboard home
 │   ├── project/[slug]/          # Dynamic project routes
-│   │   ├── submit/             # Client submission form (public)
+│   │   ├── submit/             # Designer submission form (public)
 │   │   └── view/               # Submission viewer (auth required)
 │   ├── sign-in/                 # Clerk sign-in page
 │   ├── sign-up/                 # Clerk sign-up page
