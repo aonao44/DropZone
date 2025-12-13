@@ -5,6 +5,8 @@ import { ProjectDetailClient } from "@/components/ProjectDetailClient";
 import { checkPremiumAccess } from "@/lib/billing";
 import { auth } from "@clerk/nextjs/server";
 
+import type { ReviewStatus } from "@/lib/types";
+
 type Submission = {
   id: string;
   name: string;
@@ -13,6 +15,10 @@ type Submission = {
   figma_links: string[];
   submitted_at: string;
   created_at: string;
+  // 検品ワークフロー
+  review_status?: ReviewStatus;
+  review_comment?: string;
+  reviewed_at?: string;
 };
 
 type Project = {
@@ -56,10 +62,10 @@ export default async function ProjectViewPage({
     notFound();
   }
 
-  // そのプロジェクトの提出一覧を取得
+  // そのプロジェクトの提出一覧を取得（検品ステータス含む）
   const { data: submissions, error: submissionsError } = await supabase
     .from("submissions")
-    .select("id, name, email, files, figma_links, submitted_at, created_at")
+    .select("id, name, email, files, figma_links, submitted_at, created_at, review_status, review_comment, reviewed_at")
     .eq("project_slug", project.slug)
     .order("created_at", { ascending: false });
 

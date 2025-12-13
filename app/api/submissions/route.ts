@@ -155,6 +155,7 @@ export async function POST(request: Request) {
     }
 
     // Create a new submission record with files stored as JSON
+    // review_status は自動的に 'pending'（確認待ち）に設定
     const { data, error } = await supabase
       .from("submissions")
       .insert({
@@ -165,6 +166,7 @@ export async function POST(request: Request) {
         submitted_at: body.submittedAt,
         figma_links: body.figmaLinks || [],
         files: body.files || [], // Store files as JSON
+        review_status: "pending", // 検品ワークフロー: 確認待ち状態で開始
       })
       .select("id")
       .single();

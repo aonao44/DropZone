@@ -14,6 +14,8 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { DownloadButton } from "@/components/DownloadButton";
 import { DarkLayout } from "@/components/dark-layout";
+import { FileReviewCard } from "@/components/FileReviewCard";
+import type { ReviewStatus } from "@/lib/types";
 
 type Submission = {
   id: string;
@@ -23,6 +25,10 @@ type Submission = {
   figma_links: string[];
   submitted_at: string;
   created_at: string;
+  // 検品ワークフロー
+  review_status?: ReviewStatus;
+  review_comment?: string;
+  reviewed_at?: string;
 };
 
 type Project = {
@@ -40,9 +46,39 @@ interface ProjectDetailClientProps {
   hasPremium?: boolean;
 }
 
-export function ProjectDetailClient({ project, submissions, hasPremium = false }: ProjectDetailClientProps) {
+// レビューステータスのバッジを取得
+function getSubmissionStatusBadge(status?: ReviewStatus) {
+  switch (status) {
+    case "approved":
+      return (
+        <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+          🟢 全て承認
+        </Badge>
+      );
+    case "rejected":
+      return (
+        <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
+          🟣 差戻しあり
+        </Badge>
+      );
+    default:
+      return (
+        <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
+          🟡 確認待ち
+        </Badge>
+      );
+  }
+}
+
+export function ProjectDetailClient({ project, submissions: initialSubmissions, hasPremium = false }: ProjectDetailClientProps) {
   const { toast } = useToast();
   const router = useRouter();
+  const [submissions, setSubmissions] = useState(initialSubmissions);
+
+  // データを再取得する関数
+  const refreshSubmissions = () => {
+    router.refresh();
+  };
 
   const handleCopyFormUrl = () => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
@@ -286,15 +322,18 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                           </CardDescription>
                         </div>
                         <div className="flex items-center gap-4">
-                          <div className="text-right">
+                          <div className="text-right space-y-1">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
                               <Calendar className="h-3 w-3" />
                               {formatDate(submission.created_at)}
                             </div>
-                            <Badge className="mt-1 bg-primary text-xs">
-                              {Array.isArray(submission.files) ? submission.files.length : 0}
-                              ファイル
-                            </Badge>
+                            <div className="flex items-center gap-2">
+                              {getSubmissionStatusBadge(submission.review_status)}
+                              <Badge className="bg-primary text-xs">
+                                {Array.isArray(submission.files) ? submission.files.length : 0}
+                                ファイル
+                              </Badge>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -303,7 +342,7 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                     <CardContent>
                         <Separator className="mb-4" />
 
-                        {/* ファイル一覧 */}
+                        {/* ファイル一覧（検品カード付き） */}
                         {Array.isArray(submission.files) && submission.files.length > 0 && (
                           <div className="mb-6">
                             <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
@@ -312,29 +351,13 @@ export function ProjectDetailClient({ project, submissions, hasPremium = false }
                             </h4>
                             <div className="grid grid-cols-1 gap-3">
                               {submission.files.map((file: any, index: number) => (
-                                <div
+                                <FileReviewCard
                                   key={index}
-                                  className="border border-border rounded-xl p-3 hover:border-primary transition-all duration-200 flex flex-col"
-                                >
-                                  <div className="flex-1 mb-2">
-                                    <p className="font-medium break-words text-sm">
-                                      {file.name}
-                                    </p>
-                                    {file.size && (
-                                      <p className="text-xs text-muted-foreground mt-1">
-                                        {formatFileSize(file.size)}
-                                      </p>
-                                    )}
-                                  </div>
-                                  {file.url && (
-                                    <DownloadButton
-                                      url={file.url}
-                                      fileName={file.name}
-                                      variant="default"
-                                      className="w-full gradient-primary hover:glow-blue-sm text-sm"
-                                    />
-                                  )}
-                                </div>
+                                  submissionId={submission.id}
+                                  fileIndex={index}
+                                  file={file}
+                                  onReviewUpdate={refreshSubmissions}
+                                />
                               ))}
                             </div>
                           </div>
