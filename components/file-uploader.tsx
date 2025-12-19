@@ -16,6 +16,7 @@ interface FileUploaderProps {
   multiple?: boolean;
   maxFiles?: number;
   existingFileCount?: number;
+  compact?: boolean;
 }
 
 export function FileUploader({
@@ -27,6 +28,7 @@ export function FileUploader({
   multiple = true,
   maxFiles = 10,
   existingFileCount = 0,
+  compact = false,
 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
@@ -135,41 +137,47 @@ export function FileUploader({
       {files.length < maxFiles && (
         <label htmlFor={id} className="block cursor-pointer">
           <motion.div
-            whileHover={{ y: -2 }}
+            whileHover={{ y: compact ? 0 : -2 }}
             whileTap={{ y: 1 }}
-            className={`relative border-2 border-dashed rounded-xl p-6 transition-all duration-300 ${themeClasses.dropzone} shadow-sm hover:shadow-md`}
+            className={`relative border-2 border-dashed rounded-xl ${compact ? "p-3" : "p-6"} transition-all duration-300 ${themeClasses.dropzone} shadow-sm hover:shadow-md`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            <div className="absolute inset-0 bg-dot-pattern opacity-10 rounded-xl pointer-events-none"></div>
-            <div className="flex flex-col items-center justify-center gap-2 text-center">
+            {!compact && <div className="absolute inset-0 bg-dot-pattern opacity-10 rounded-xl pointer-events-none"></div>}
+            <div className={`flex ${compact ? "flex-row" : "flex-col"} items-center justify-center gap-2 text-center`}>
               <motion.div
                 animate={{
-                  y: isDragging ? -8 : 0,
-                  scale: isDragging ? 1.1 : 1,
+                  y: isDragging ? (compact ? -2 : -8) : 0,
+                  scale: isDragging ? (compact ? 1.05 : 1.1) : 1,
                 }}
                 transition={{ type: "spring", stiffness: 300 }}
                 className="relative"
               >
-                <div
-                  className={`absolute inset-0 blur-lg ${
-                    isDark ? "bg-indigo-500" : "bg-pink-200"
-                  } rounded-full transition-opacity ${isDragging ? "opacity-70" : "opacity-0"}`}
-                ></div>
-                <Upload className={`h-8 w-8 relative z-10 transition-colors ${themeClasses.uploadIcon}`} />
+                {!compact && (
+                  <div
+                    className={`absolute inset-0 blur-lg ${
+                      isDark ? "bg-indigo-500" : "bg-pink-200"
+                    } rounded-full transition-opacity ${isDragging ? "opacity-70" : "opacity-0"}`}
+                  ></div>
+                )}
+                <Upload className={`${compact ? "h-5 w-5" : "h-8 w-8"} relative z-10 transition-colors ${themeClasses.uploadIcon}`} />
               </motion.div>
-              <div className="space-y-1">
-                <p className={`text-sm font-medium ${themeClasses.text}`}>
-                  ドラッグ＆ドロップ または クリックしてアップロード
+              <div className={compact ? "" : "space-y-1"}>
+                <p className={`${compact ? "text-xs" : "text-sm"} font-medium ${themeClasses.text}`}>
+                  {compact ? "クリックまたはドラッグ" : "ドラッグ＆ドロップ または クリックしてアップロード"}
                 </p>
-                <p className={`text-xs ${themeClasses.mutedText}`}>
-                  JPG, PNG, GIF (最大10MB) {multiple && `- 最大${maxFiles}ファイル`}
-                </p>
-                {files.length > 0 && (
-                  <p className={`text-xs ${themeClasses.mutedText}`}>
-                    {files.length} / {maxFiles} ファイル選択中
-                  </p>
+                {!compact && (
+                  <>
+                    <p className={`text-xs ${themeClasses.mutedText}`}>
+                      JPG, PNG, GIF (最大10MB) {multiple && `- 最大${maxFiles}ファイル`}
+                    </p>
+                    {files.length > 0 && (
+                      <p className={`text-xs ${themeClasses.mutedText}`}>
+                        {files.length} / {maxFiles} ファイル選択中
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>

@@ -3,6 +3,16 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { generateRandomSlug } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
+import { SlotInput, SlotTemplateKey } from "@/lib/types";
+import { getSlotsFromTemplate, DEFAULT_MIGRATION_SLOT } from "@/lib/slot-templates";
+
+interface CreateProjectBody {
+  title: string;
+  name: string;
+  email: string;
+  template?: SlotTemplateKey;
+  customSlots?: SlotInput[];
+}
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +29,7 @@ export async function POST(request: Request) {
 
     const cookieStore = cookies();
     const supabase = createClient(cookieStore);
-    const body = await request.json();
+    const body: CreateProjectBody = await request.json();
 
     if (!body.title || !body.name || !body.email) {
       return new NextResponse(
@@ -32,20 +42,21 @@ export async function POST(request: Request) {
 
     const projectSlug = generateRandomSlug();
 
-    const { data, error } = await supabase
+    // 1. プロジェクト作成
+    const { data: projectData, error: projectError } = await supabase
       .from("projects")
       .insert({
         slug: projectSlug,
         title: body.title,
         client_name: body.name,
         client_email: body.email,
-        user_id: userId, // ClerkのユーザーIDを保存
+        user_id: userId,
       })
       .select("id, slug")
       .single();
 
-    if (error) {
-      console.error("Supabase error:", error);
+    if (projectError) {
+      console.error("Supabase project error:", projectError);
       return new NextResponse(
         JSON.stringify({
           error: "プロジェクト情報の保存に失敗しました",
@@ -54,11 +65,54 @@ export async function POST(request: Request) {
       );
     }
 
+    // 2. スロット作成
+    let slotsToCreate: SlotInput[] = [];
+
+    if (body.template) {
+      // テンプレートからスロットを取得
+      slotsToCreate = getSlotsFromTemplate(body.template);
+    }
+
+    // カスタムスロットを追加
+    if (body.customSlots && body.customSlots.length > 0) {
+      const baseOrder = slotsToCreate.length;
+      const customSlotsWithOrder = body.customSlots.map((slot, index) => ({
+        ...slot,
+        sort_order: slot.sort_order ?? baseOrder + index,
+      }));
+      slotsToCreate = [...slotsToCreate, ...customSlotsWithOrder];
+    }
+
+    // テンプレートもカスタムスロットもない場合はデフォルトスロットを追加
+    if (slotsToCreate.length === 0) {
+      slotsToCreate = [DEFAULT_MIGRATION_SLOT];
+    }
+
+    // スロットをDBに挿入
+    const slotsData = slotsToCreate.map((slot) => ({
+      project_id: projectData.id,
+      name: slot.name,
+      description: slot.description || null,
+      is_required: slot.is_required,
+      accept_type: slot.accept_type,
+      sort_order: slot.sort_order ?? 0,
+    }));
+
+    const { error: slotsError } = await supabase
+      .from("project_slots")
+      .insert(slotsData);
+
+    if (slotsError) {
+      console.error("Supabase slots error:", slotsError);
+      // プロジェクトは作成済みなので、エラーをログに残しつつ続行
+      // スロットは後から追加可能
+    }
+
     return new NextResponse(
       JSON.stringify({
         success: true,
-        id: data.id,
-        slug: data.slug,
+        id: projectData.id,
+        slug: projectData.slug,
       }),
       { status: 201 }
     );

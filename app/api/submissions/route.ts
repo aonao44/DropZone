@@ -1,10 +1,20 @@
 import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { SubmissionFile } from "@/lib/types";
+import { SubmissionFile, SlotAcceptType } from "@/lib/types";
+import { validateFileType } from "@/lib/file-validation";
 
 // 1ユーザーあたりの累計最大ファイル数
 const MAX_FILES_PER_PROJECT = 10;
+
+// スロット対応のファイル入力型
+interface SlotFileInput {
+  slotId: string;
+  name: string;
+  url: string;
+  size?: number;
+  mimeType?: string;
+}
 
 export async function POST(request: Request) {
   try {
@@ -181,6 +191,97 @@ export async function POST(request: Request) {
       );
     }
 
+    // スロット対応のファイル処理
+    const slotFiles: SlotFileInput[] = body.slotFiles || [];
+    const slotFileResults: { slotId: string; fileId: string; version: number }[] = [];
+
+    if (slotFiles.length > 0) {
+      // プロジェクトIDを取得（スロット検証用）
+      const { data: projectData } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("slug", projectSlug)
+        .single();
+
+      if (projectData) {
+        for (const slotFile of slotFiles) {
+          // スロット情報を取得
+          const { data: slot } = await supabase
+            .from("project_slots")
+            .select("id, accept_type")
+            .eq("id", slotFile.slotId)
+            .eq("project_id", projectData.id)
+            .single();
+
+          if (!slot) {
+            console.error(`Slot not found: ${slotFile.slotId}`);
+            continue;
+          }
+
+          // ファイル種類バリデーション
+          if (slotFile.mimeType) {
+            const validation = validateFileType(
+              { type: slotFile.mimeType, name: slotFile.name },
+              slot.accept_type as SlotAcceptType
+            );
+            if (!validation.valid) {
+              console.error(`File validation failed for ${slotFile.name}: ${validation.error}`);
+              continue;
+            }
+          }
+
+          // 既存の is_latest フラグを false に更新
+          await supabase
+            .from("slot_files")
+            .update({ is_latest: false })
+            .eq("slot_id", slotFile.slotId)
+            .eq("is_latest", true);
+
+          // 現在の最大バージョンを取得
+          const { data: maxVersionFile } = await supabase
+            .from("slot_files")
+            .select("version")
+            .eq("slot_id", slotFile.slotId)
+            .order("version", { ascending: false })
+            .limit(1)
+            .single();
+
+          const newVersion = (maxVersionFile?.version || 0) + 1;
+
+          // 新しいスロットファイルを作成
+          const { data: newSlotFile, error: slotFileError } = await supabase
+            .from("slot_files")
+            .insert({
+              slot_id: slotFile.slotId,
+              submission_id: data.id,
+              file_name: slotFile.name,
+              file_url: slotFile.url,
+              file_size: slotFile.size || null,
+              version: newVersion,
+              is_latest: true,
+              review_status: "pending",
+              submitted_by_name: body.name,
+              submitted_by_email: body.email,
+            })
+            .select("id, version")
+            .single();
+
+          if (slotFileError) {
+            console.error("Slot file insert error:", slotFileError);
+            continue;
+          }
+
+          if (newSlotFile) {
+            slotFileResults.push({
+              slotId: slotFile.slotId,
+              fileId: newSlotFile.id,
+              version: newSlotFile.version,
+            });
+          }
+        }
+      }
+    }
+
     return new NextResponse(
       JSON.stringify({
         success: true,
@@ -192,6 +293,7 @@ export async function POST(request: Request) {
           total: existingFileCount + newFileCount,
           max: MAX_FILES_PER_PROJECT,
         },
+        slotFiles: slotFileResults,
       }),
       { status: 201 }
     );

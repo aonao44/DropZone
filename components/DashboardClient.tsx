@@ -19,8 +19,10 @@ type Project = {
   client_name: string;
   client_email: string;
   created_at: string;
-  submission_count: number;
   file_count: number;
+  approved_count: number;
+  rejected_count: number;
+  pending_count: number;
 };
 
 interface DashboardClientProps {
@@ -189,20 +191,29 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-3 px-3 sm:px-4">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center">
-                        <div
-                          className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full mr-1.5 ${
-                            project.submission_count > 0 ? "bg-green-400" : "bg-yellow-400"
-                          }`}
-                        ></div>
-                        <span className="text-xs sm:text-sm font-light text-slate-200">
-                          {project.submission_count > 0
-                            ? `${project.submission_count}回の提出 ${project.file_count}ファイル`
-                            : "未提出"}
+                    {project.file_count > 0 ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                          OK {project.approved_count}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                          NG {project.rejected_count}
+                        </span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+                          未確認 {project.pending_count}
                         </span>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full mr-1.5 bg-slate-500"></div>
+                        <span className="text-xs sm:text-sm font-light text-slate-400">
+                          未提出
+                        </span>
+                      </div>
+                    )}
                   </CardContent>
                   <CardFooter className="flex flex-col gap-1.5 pt-0 p-3 sm:p-4">
                     <Button

@@ -5,7 +5,7 @@ import { ProjectDetailClient } from "@/components/ProjectDetailClient";
 import { checkPremiumAccess } from "@/lib/billing";
 import { auth } from "@clerk/nextjs/server";
 
-import type { ReviewStatus } from "@/lib/types";
+import type { ReviewStatus, ProjectSlot, SlotFile } from "@/lib/types";
 
 type Submission = {
   id: string;
@@ -73,14 +73,97 @@ export default async function ProjectViewPage({
     console.error("Error fetching submissions:", submissionsError);
   }
 
+  // file_reviewsからis_deleted情報を取得
+  const submissionIds = (submissions || []).map((s) => s.id);
+  let fileReviews: { submission_id: string; file_index: number; is_deleted: boolean }[] = [];
+
+  if (submissionIds.length > 0) {
+    const { data: reviews, error: reviewsError } = await supabase
+      .from("file_reviews")
+      .select("submission_id, file_index, is_deleted")
+      .in("submission_id", submissionIds);
+
+    if (reviewsError) {
+      console.error("Error fetching file reviews:", reviewsError);
+    }
+    fileReviews = reviews || [];
+  }
+
+  // プロジェクトのスロット情報を取得
+  const { data: slotsData, error: slotsError } = await supabase
+    .from("project_slots")
+    .select(`
+      *,
+      slot_files (
+        id,
+        file_name,
+        file_url,
+        file_size,
+        version,
+        is_latest,
+        review_status,
+        review_comment,
+        reviewed_at,
+        reviewed_by,
+        is_deleted,
+        submitted_by_name,
+        submitted_by_email,
+        created_at
+      )
+    `)
+    .eq("project_id", project.id)
+    .order("sort_order", { ascending: true });
+
+  if (slotsError) {
+    console.error("Error fetching slots:", slotsError);
+  }
+
+  // スロットデータを整形（削除済みファイルを除外）
+  const slots: ProjectSlot[] = (slotsData || []).map((slot) => {
+    const files = (slot.slot_files || [])
+      .filter((f: SlotFile) => !f.is_deleted)
+      .sort((a: SlotFile, b: SlotFile) => b.version - a.version);
+    const latestFile = files.find((f: SlotFile) => f.is_latest) || files[0] || null;
+    return {
+      ...slot,
+      files,
+      latest_file: latestFile,
+    };
+  });
+
+  // 削除済みファイルを除外した提出データを作成
+  const submissionsWithFilteredFiles = (submissions || []).map((submission) => {
+    const filteredFiles = (submission.files || []).filter((_file: unknown, index: number) => {
+      const review = fileReviews.find(
+        (r) => r.submission_id === submission.id && r.file_index === index
+      );
+      // 削除済みでないファイルのみ残す
+      return !review?.is_deleted;
+    });
+    return {
+      ...submission,
+      files: filteredFiles,
+      // 元のファイルインデックスを保持するためのマッピングも作成
+      originalFileIndices: (submission.files || [])
+        .map((_file: unknown, index: number) => {
+          const review = fileReviews.find(
+            (r) => r.submission_id === submission.id && r.file_index === index
+          );
+          return !review?.is_deleted ? index : null;
+        })
+        .filter((index: number | null): index is number => index !== null),
+    };
+  });
+
   // プレミアムプランのチェック
   const hasPremium = await checkPremiumAccess();
 
   return (
     <ProjectDetailClient
       project={project}
-      submissions={submissions || []}
+      submissions={submissionsWithFilteredFiles}
       hasPremium={hasPremium}
+      slots={slots}
     />
   );
 }

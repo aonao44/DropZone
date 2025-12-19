@@ -11,8 +11,10 @@ type Project = {
   client_name: string;
   client_email: string;
   created_at: string;
-  submission_count: number;
   file_count: number;
+  approved_count: number;
+  rejected_count: number;
+  pending_count: number;
 };
 
 export default async function DashboardPage() {
@@ -53,39 +55,85 @@ export default async function DashboardPage() {
     return <DashboardClient projects={[]} hasPremiumAccess={hasPremiumAccess} />;
   }
 
-  // 各プロジェクトの提出数とファイル数を取得
+  // 各プロジェクトのファイル数とレビューステータス別カウントを取得
   const projects: Project[] = await Promise.all(
     (projectsData || []).map(async (project) => {
-      // 提出回数を取得
-      const { count, error: countError } = await supabase
-        .from("submissions")
-        .select("id", { count: "exact", head: true })
-        .eq("project_slug", project.slug);
+      // プロジェクトのスロットIDを取得
+      const { data: slots, error: slotsError } = await supabase
+        .from("project_slots")
+        .select("id")
+        .eq("project_id", project.id);
 
-      if (countError) {
-        console.error(`Error counting submissions for project ${project.slug}:`, countError);
+      if (slotsError) {
+        console.error(`Error fetching slots for project ${project.slug}:`, slotsError);
       }
 
-      // ファイル数を取得
-      const { data: submissions, error: filesError } = await supabase
-        .from("submissions")
-        .select("files")
-        .eq("project_slug", project.slug);
+      const slotIds = (slots || []).map((s) => s.id);
+      let totalFiles = 0;
+      let approvedCount = 0;
+      let rejectedCount = 0;
+      let pendingCount = 0;
 
-      if (filesError) {
-        console.error(`Error fetching files for project ${project.slug}:`, filesError);
+      // スロットがある場合のみファイル数とステータス別カウントを取得
+      if (slotIds.length > 0) {
+        // 総ファイル数
+        const { count: fileCount, error: filesError } = await supabase
+          .from("slot_files")
+          .select("id", { count: "exact", head: true })
+          .eq("is_deleted", false)
+          .in("slot_id", slotIds);
+
+        if (filesError) {
+          console.error(`Error fetching files for project ${project.slug}:`, filesError);
+        }
+        totalFiles = fileCount || 0;
+
+        // OK数（approved）
+        const { count: approved, error: approvedError } = await supabase
+          .from("slot_files")
+          .select("id", { count: "exact", head: true })
+          .eq("is_deleted", false)
+          .eq("review_status", "approved")
+          .in("slot_id", slotIds);
+
+        if (approvedError) {
+          console.error(`Error fetching approved count for project ${project.slug}:`, approvedError);
+        }
+        approvedCount = approved || 0;
+
+        // NG数（rejected）
+        const { count: rejected, error: rejectedError } = await supabase
+          .from("slot_files")
+          .select("id", { count: "exact", head: true })
+          .eq("is_deleted", false)
+          .eq("review_status", "rejected")
+          .in("slot_id", slotIds);
+
+        if (rejectedError) {
+          console.error(`Error fetching rejected count for project ${project.slug}:`, rejectedError);
+        }
+        rejectedCount = rejected || 0;
+
+        // 未確認数（pending）
+        const { count: pending, error: pendingError } = await supabase
+          .from("slot_files")
+          .select("id", { count: "exact", head: true })
+          .eq("is_deleted", false)
+          .eq("review_status", "pending")
+          .in("slot_id", slotIds);
+
+        if (pendingError) {
+          console.error(`Error fetching pending count for project ${project.slug}:`, pendingError);
+        }
+        pendingCount = pending || 0;
       }
-
-      const totalFiles = (submissions || []).reduce((sum, submission) => {
-        return sum + (Array.isArray(submission.files) ? submission.files.length : 0);
-      }, 0);
-
-      console.log(`Project ${project.slug} has ${count} submissions and ${totalFiles} files`);
 
       return {
         ...project,
-        submission_count: count || 0,
         file_count: totalFiles,
+        approved_count: approvedCount,
+        rejected_count: rejectedCount,
+        pending_count: pendingCount,
       };
     })
   );
