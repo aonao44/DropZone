@@ -13,6 +13,14 @@ interface FileReviewRequestBody {
   review_comment?: string;
 }
 
+interface FileDeleteRequestBody {
+  submission_id: string;
+  file_index: number;
+  // 提出者認証用（Clerk認証がない場合）
+  submitter_name?: string;
+  submitter_email?: string;
+}
+
 // POST: ファイル単位のレビューを作成または更新
 export async function POST(request: Request) {
   try {
@@ -185,6 +193,184 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error("File review API error:", error);
+    return new NextResponse(
+      JSON.stringify({
+        error: "サーバー内部エラーが発生しました",
+      }),
+      { status: 500 }
+    );
+  }
+}
+
+// DELETE: ファイルを論理削除
+export async function DELETE(request: Request) {
+  try {
+    const cookieStore = cookies();
+    const supabase = createClient(cookieStore);
+    const body: FileDeleteRequestBody = await request.json();
+
+    // バリデーション
+    if (!body.submission_id) {
+      return new NextResponse(
+        JSON.stringify({ error: "submission_id が必要です" }),
+        { status: 400 }
+      );
+    }
+
+    if (body.file_index === undefined || body.file_index < 0) {
+      return new NextResponse(
+        JSON.stringify({ error: "有効な file_index が必要です" }),
+        { status: 400 }
+      );
+    }
+
+    // 提出情報を取得
+    const { data: submission, error: fetchError } = await supabase
+      .from("submissions")
+      .select("id, project_slug, name, email")
+      .eq("id", body.submission_id)
+      .single();
+
+    if (fetchError || !submission) {
+      return new NextResponse(
+        JSON.stringify({ error: "提出が見つかりません" }),
+        { status: 404 }
+      );
+    }
+
+    // 認証チェック: Clerk認証 または 提出者本人
+    const { userId } = await auth();
+    let deletedBy = "";
+    let isAuthorized = false;
+
+    if (userId) {
+      // Clerk認証がある場合: プロジェクト所有者かチェック
+      const { data: project } = await supabase
+        .from("projects")
+        .select("user_id")
+        .eq("slug", submission.project_slug)
+        .single();
+
+      if (project && project.user_id === userId) {
+        isAuthorized = true;
+        deletedBy = userId;
+      }
+    }
+
+    // 提出者本人の認証（Clerk認証がない場合、または所有者でない場合）
+    if (!isAuthorized && body.submitter_name && body.submitter_email) {
+      if (
+        submission.name === body.submitter_name &&
+        submission.email === body.submitter_email
+      ) {
+        isAuthorized = true;
+        deletedBy = `submitter:${body.submitter_email}`;
+      }
+    }
+
+    if (!isAuthorized) {
+      return new NextResponse(
+        JSON.stringify({ error: "このファイルを削除する権限がありません" }),
+        { status: 403 }
+      );
+    }
+
+    // 既存のfile_reviewレコードを取得
+    const { data: existingReview } = await supabase
+      .from("file_reviews")
+      .select("review_status, is_deleted")
+      .eq("submission_id", body.submission_id)
+      .eq("file_index", body.file_index)
+      .single();
+
+    // 承認済みファイルは削除不可
+    if (existingReview?.review_status === "approved") {
+      return new NextResponse(
+        JSON.stringify({
+          error: "承認済みのファイルは削除できません",
+        }),
+        { status: 403 }
+      );
+    }
+
+    // 既に削除済みの場合
+    if (existingReview?.is_deleted) {
+      return new NextResponse(
+        JSON.stringify({ error: "このファイルは既に削除されています" }),
+        { status: 400 }
+      );
+    }
+
+    // 論理削除を実行
+    if (existingReview) {
+      // 既存のレコードを更新
+      const { error: updateError } = await supabase
+        .from("file_reviews")
+        .update({
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: deletedBy,
+        })
+        .eq("submission_id", body.submission_id)
+        .eq("file_index", body.file_index);
+
+      if (updateError) {
+        console.error("Supabase update error:", updateError);
+        return new NextResponse(
+          JSON.stringify({ error: "ファイルの削除に失敗しました" }),
+          { status: 500 }
+        );
+      }
+    } else {
+      // レコードがない場合は新規作成（削除済み状態で）
+      // submissionsからファイル情報を取得
+      const { data: submissionFiles } = await supabase
+        .from("submissions")
+        .select("files")
+        .eq("id", body.submission_id)
+        .single();
+
+      const files = submissionFiles?.files as Array<{ name: string; url: string }> | undefined;
+      const file = files?.[body.file_index];
+
+      if (!file) {
+        return new NextResponse(
+          JSON.stringify({ error: "指定されたファイルが見つかりません" }),
+          { status: 404 }
+        );
+      }
+
+      const { error: insertError } = await supabase
+        .from("file_reviews")
+        .insert({
+          submission_id: body.submission_id,
+          file_index: body.file_index,
+          file_name: file.name,
+          file_url: file.url,
+          review_status: "pending",
+          is_deleted: true,
+          deleted_at: new Date().toISOString(),
+          deleted_by: deletedBy,
+        });
+
+      if (insertError) {
+        console.error("Supabase insert error:", insertError);
+        return new NextResponse(
+          JSON.stringify({ error: "ファイルの削除に失敗しました" }),
+          { status: 500 }
+        );
+      }
+    }
+
+    return new NextResponse(
+      JSON.stringify({
+        success: true,
+        message: "ファイルを削除しました",
+      }),
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("File delete API error:", error);
     return new NextResponse(
       JSON.stringify({
         error: "サーバー内部エラーが発生しました",

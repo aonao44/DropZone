@@ -10,13 +10,13 @@
 
 import * as dotenv from 'dotenv'
 import { resolve } from 'path'
-import { Clerk } from '@clerk/clerk-sdk-node'
+import { createClerkClient } from '@clerk/backend'
 
 // .env.localを読み込む
 dotenv.config({ path: resolve(process.cwd(), '.env.local') })
 
 // Clerk SDKの初期化
-const clerk = Clerk({ secretKey: process.env.CLERK_SECRET_KEY })
+const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! })
 
 // テストユーザーデータ
 const testUsers = [

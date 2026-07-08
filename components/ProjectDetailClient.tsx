@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Copy, Calendar, Clock, FileIcon, Link as LinkIcon, Download, Lock, Sparkles } from "lucide-react";
+import { ArrowLeft, Copy, Calendar, Clock, FileIcon, Link as LinkIcon, Download, Lock, Sparkles, Plus, Loader2, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 
@@ -15,7 +15,32 @@ import { Badge } from "@/components/ui/badge";
 import { DownloadButton } from "@/components/DownloadButton";
 import { DarkLayout } from "@/components/dark-layout";
 import { FileReviewCard } from "@/components/FileReviewCard";
-import type { ReviewStatus } from "@/lib/types";
+import { SlotFileReviewCard } from "@/components/SlotFileReviewCard";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import type { ReviewStatus, ProjectSlot, SlotAcceptType } from "@/lib/types";
+import { ACCEPT_TYPE_OPTIONS } from "@/lib/slot-templates";
 
 type Submission = {
   id: string;
@@ -29,6 +54,8 @@ type Submission = {
   review_status?: ReviewStatus;
   review_comment?: string;
   reviewed_at?: string;
+  // 削除済みファイルを除外した後の元インデックスマッピング
+  originalFileIndices?: number[];
 };
 
 type Project = {
@@ -44,6 +71,7 @@ interface ProjectDetailClientProps {
   project: Project;
   submissions: Submission[];
   hasPremium?: boolean;
+  slots?: ProjectSlot[];
 }
 
 // レビューステータスのバッジを取得
@@ -70,14 +98,114 @@ function getSubmissionStatusBadge(status?: ReviewStatus) {
   }
 }
 
-export function ProjectDetailClient({ project, submissions: initialSubmissions, hasPremium = false }: ProjectDetailClientProps) {
+export function ProjectDetailClient({ project, submissions: initialSubmissions, hasPremium = false, slots = [] }: ProjectDetailClientProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [submissions, setSubmissions] = useState(initialSubmissions);
+  const hasSlots = slots.length > 0;
+
+  // スロット追加ダイアログ用の状態
+  const [isAddSlotOpen, setIsAddSlotOpen] = useState(false);
+  const [isAddingSlot, setIsAddingSlot] = useState(false);
+  const [newSlotName, setNewSlotName] = useState("");
+  const [newSlotDescription, setNewSlotDescription] = useState("");
+  const [newSlotRequired, setNewSlotRequired] = useState(false);
+  const [newSlotAcceptType, setNewSlotAcceptType] = useState<SlotAcceptType>("IMAGE_SINGLE");
+
+  // スロット削除用の状態
+  const [deletingSlotId, setDeletingSlotId] = useState<string | null>(null);
+  const [confirmDeleteSlot, setConfirmDeleteSlot] = useState<{ id: string; name: string } | null>(null);
 
   // データを再取得する関数
   const refreshSubmissions = () => {
     router.refresh();
+  };
+
+  // スロット追加処理
+  const handleAddSlot = async () => {
+    if (!newSlotName.trim()) {
+      toast({
+        title: "エラー",
+        description: "スロット名を入力してください",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAddingSlot(true);
+    try {
+      const response = await fetch(`/api/projects/${project.id}/slots`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newSlotName.trim(),
+          description: newSlotDescription.trim() || undefined,
+          is_required: newSlotRequired,
+          accept_type: newSlotAcceptType,
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "スロットの追加に失敗しました");
+      }
+
+      toast({
+        title: "スロットを追加しました",
+        description: `「${newSlotName}」を追加しました`,
+      });
+
+      // フォームをリセット
+      setNewSlotName("");
+      setNewSlotDescription("");
+      setNewSlotRequired(false);
+      setNewSlotAcceptType("IMAGE_SINGLE");
+      setIsAddSlotOpen(false);
+
+      // ページをリフレッシュ
+      router.refresh();
+    } catch (error) {
+      console.error("Add slot error:", error);
+      toast({
+        title: "エラー",
+        description: error instanceof Error ? error.message : "スロットの追加に失敗しました",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingSlot(false);
+    }
+  };
+
+  // スロット削除処理
+  const handleDeleteSlot = async (slotId: string, slotName: string) => {
+    setDeletingSlotId(slotId);
+    try {
+      const response = await fetch(`/api/projects/${project.id}/slots/${slotId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "スロットの削除に失敗しました");
+      }
+
+      toast({
+        title: "スロットを削除しました",
+        description: `「${slotName}」を削除しました`,
+      });
+
+      // ページをリフレッシュ
+      router.refresh();
+    } catch (error) {
+      console.error("Delete slot error:", error);
+      toast({
+        title: "エラー",
+        description: error instanceof Error ? error.message : "スロットの削除に失敗しました",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingSlotId(null);
+    }
   };
 
   const handleCopyFormUrl = () => {
@@ -139,7 +267,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
               variant="outline"
               className="text-base"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
               戻る
             </Button>
             <UserButton
@@ -165,22 +293,26 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                   <CardTitle className="text-2xl font-bold mb-2">
                     {project.title}
                   </CardTitle>
-                  <CardDescription className="text-sm">
-                    依頼者: {project.client_name} ({project.client_email})
-                  </CardDescription>
+                  {submissions.length > 0 && (
+                    <CardDescription className="text-sm">
+                      提出者: {[...new Map(submissions.map(s => [s.email, s])).values()]
+                        .map(s => `${s.name} (${s.email})`)
+                        .join(", ")}
+                    </CardDescription>
+                  )}
                 </div>
                 <Button
                   onClick={handleCopyFormUrl}
                   variant="outline"
                   className="border-glow font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl transition-all duration-200 text-xs sm:text-sm hover:glow-blue-sm"
                 >
-                  <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   フォームURLをコピー
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-muted p-3 rounded-xl">
                   <p className="text-xs text-muted-foreground mb-1">作成日</p>
                   <p className="text-base font-semibold">
@@ -188,30 +320,292 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                   </p>
                 </div>
                 <div className="bg-muted p-3 rounded-xl">
-                  <p className="text-xs text-muted-foreground mb-1">提出数</p>
-                  <p className="text-base font-semibold">
-                    {submissions.length}件
-                  </p>
-                </div>
-                <div className="bg-muted p-3 rounded-xl">
-                  <p className="text-xs text-muted-foreground mb-1">総ファイル数</p>
-                  <p className="text-base font-semibold">
-                    {submissions.reduce(
-                      (total, sub) => total + (Array.isArray(sub.files) ? sub.files.length : 0),
-                      0
-                    )}
-                    ファイル
-                  </p>
+                  <p className="text-xs text-muted-foreground mb-2">検品ステータス</p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400 tabular-nums">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400" aria-hidden="true"></span>
+                      OK {slots.reduce((total, slot) => total + (slot.files?.filter(f => f.review_status === 'approved').length || 0), 0)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400 tabular-nums">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400" aria-hidden="true"></span>
+                      NG {slots.reduce((total, slot) => total + (slot.files?.filter(f => f.review_status === 'rejected').length || 0), 0)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400 tabular-nums">
+                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" aria-hidden="true"></span>
+                      未確認 {slots.reduce((total, slot) => total + (slot.files?.filter(f => f.review_status === 'pending').length || 0), 0)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* プレミアム機能セクション */}
-          <Card className="mb-8 border-glow bg-card transition-all duration-200">
+          {/* スロットベースの表示 */}
+          {hasSlots && (
+            <div className="space-y-6 mb-8">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold">提出スロット</h2>
+                <Dialog open={isAddSlotOpen} onOpenChange={setIsAddSlotOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="border-slate-600 hover:bg-slate-700">
+                      <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
+                      スロット追加
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-slate-900 border-slate-700">
+                    <DialogHeader>
+                      <DialogTitle className="text-slate-100">スロットを追加</DialogTitle>
+                      <DialogDescription className="text-slate-400">
+                        新しい提出スロットを追加します
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="slot-name" className="text-slate-200">
+                          スロット名 <span className="text-red-400">*</span>
+                        </Label>
+                        <Input
+                          id="slot-name"
+                          value={newSlotName}
+                          onChange={(e) => setNewSlotName(e.target.value)}
+                          placeholder="例: ロゴ、バナー画像"
+                          className="bg-slate-800 border-slate-600 text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="slot-description" className="text-slate-200">
+                          説明（任意）
+                        </Label>
+                        <Input
+                          id="slot-description"
+                          value={newSlotDescription}
+                          onChange={(e) => setNewSlotDescription(e.target.value)}
+                          placeholder="例: 透過PNGまたはSVG形式"
+                          className="bg-slate-800 border-slate-600 text-slate-100"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-200">ファイル形式</Label>
+                        <Select
+                          value={newSlotAcceptType}
+                          onValueChange={(value) => setNewSlotAcceptType(value as SlotAcceptType)}
+                        >
+                          <SelectTrigger className="bg-slate-800 border-slate-600 text-slate-100">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-800 border-slate-600">
+                            {ACCEPT_TYPE_OPTIONS.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                                className="text-slate-100 focus:bg-slate-700"
+                              >
+                                {option.icon} {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="slot-required"
+                          checked={newSlotRequired}
+                          onCheckedChange={(checked) => setNewSlotRequired(checked === true)}
+                          className="border-slate-600 data-[state=checked]:bg-amber-500"
+                        />
+                        <Label htmlFor="slot-required" className="text-slate-200 cursor-pointer">
+                          必須項目にする
+                        </Label>
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsAddSlotOpen(false)}
+                        className="border-slate-600 text-slate-200 hover:bg-slate-700"
+                      >
+                        キャンセル
+                      </Button>
+                      <Button
+                        onClick={handleAddSlot}
+                        disabled={isAddingSlot || !newSlotName.trim()}
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        {isAddingSlot ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                            追加中…
+                          </>
+                        ) : (
+                          "追加"
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {slots.map((slot) => (
+                  <div key={slot.id} className="relative">
+                    <SlotFileReviewCard
+                      slot={slot}
+                      onReviewUpdate={refreshSubmissions}
+                    />
+                    {/* 削除ボタン */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setConfirmDeleteSlot({ id: slot.id, name: slot.name })}
+                      disabled={deletingSlotId === slot.id}
+                      aria-label={`スロット「${slot.name}」を削除`}
+                      className="absolute top-2 right-2 h-7 w-7 p-0 bg-slate-700/80 hover:bg-red-600 text-slate-400 hover:text-white"
+                      title="スロットを削除"
+                    >
+                      {deletingSlotId === slot.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      )}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 従来の提出一覧（スロットがない場合のみ表示） */}
+          {!hasSlots && (
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold">提出一覧</h2>
+
+            {submissions.length === 0 ? (
+              <Card className="border-2 border-dashed border-border rounded-2xl bg-card">
+                <CardContent className="py-10 text-center">
+                  <p className="text-muted-foreground text-base">
+                    まだ提出がありません
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {submissions.map((submission) => (
+                  <Card
+                    key={submission.id}
+                    className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm"
+                  >
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg font-semibold">
+                            {submission.name}
+                          </CardTitle>
+                          <CardDescription className="mt-1 text-sm">
+                            {submission.email}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right space-y-1">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" aria-hidden="true" />
+                              {formatDate(submission.created_at)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {getSubmissionStatusBadge(submission.review_status)}
+                              <Badge className="bg-primary text-xs tabular-nums">
+                                {Array.isArray(submission.files) ? submission.files.length : 0}
+                                ファイル
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent>
+                        <Separator className="mb-4" />
+
+                        {/* ファイル一覧（検品カード付き） */}
+                        {Array.isArray(submission.files) && submission.files.length > 0 && (
+                          <div className="mb-6">
+                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                              <FileIcon className="h-4 w-4" aria-hidden="true" />
+                              アップロードファイル
+                            </h4>
+                            <div className="grid grid-cols-1 gap-3">
+                              {submission.files.map((file: any, index: number) => {
+                                // 元のファイルインデックスを取得（削除済みファイル除外後のマッピング）
+                                const originalIndex = submission.originalFileIndices
+                                  ? submission.originalFileIndices[index]
+                                  : index;
+                                return (
+                                  <FileReviewCard
+                                    key={originalIndex}
+                                    submissionId={submission.id}
+                                    fileIndex={originalIndex}
+                                    file={file}
+                                    reviewStatus={file.reviewStatus}
+                                    reviewComment={file.reviewComment}
+                                    onReviewUpdate={refreshSubmissions}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Figmaリンク */}
+                        {Array.isArray(submission.figma_links) &&
+                          submission.figma_links.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                                <LinkIcon className="h-4 w-4" aria-hidden="true" />
+                                Figmaリンク
+                              </h4>
+                              <div className="space-y-2">
+                                {submission.figma_links.map((link: string, index: number) => (
+                                  <div
+                                    key={index}
+                                    className="border border-border rounded-xl p-2.5 flex items-center justify-between"
+                                  >
+                                    <a
+                                      href={link}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:text-primary/80 hover:underline truncate flex-1 min-w-0 text-sm"
+                                    >
+                                      {link}
+                                    </a>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => {
+                                        navigator.clipboard.writeText(link);
+                                        toast({
+                                          title: "リンクをコピーしました",
+                                        });
+                                      }}
+                                      className="ml-2 text-xs"
+                                    >
+                                      <Copy className="h-3 w-3" aria-hidden="true" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                      </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+          )}
+
+          {/* プレミアム機能セクション（検品対象の下に配置） */}
+          <Card className="mt-8 border-glow bg-card transition-all duration-200">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-yellow-500" />
+                <Sparkles className="h-4 w-4 text-yellow-500" aria-hidden="true" />
                 <CardTitle className="text-lg">プレミアム機能</CardTitle>
               </div>
               <CardDescription className="text-sm">
@@ -229,7 +623,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                       try {
                         toast({
                           title: "ZIP作成中",
-                          description: "ファイルをまとめています...",
+                          description: "ファイルをまとめています…",
                         });
 
                         const response = await fetch(
@@ -265,14 +659,14 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                     }}
                     className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
                   >
-                    <Download className="mr-2 h-4 w-4" />
+                    <Download className="mr-2 h-4 w-4" aria-hidden="true" />
                     全ファイルをZIPでダウンロード
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-muted">
-                    <Lock className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <Lock className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
                     <div className="flex-1">
                       {/* 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化 */}
                       <p className="text-sm font-medium mb-1">プレミアムプランが必要です</p>
@@ -291,126 +685,41 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
               )}
             </CardContent>
           </Card>
-
-          {/* 提出一覧 */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold">提出一覧</h2>
-
-            {submissions.length === 0 ? (
-              <Card className="border-2 border-dashed border-border rounded-2xl bg-card">
-                <CardContent className="py-10 text-center">
-                  <p className="text-muted-foreground text-base">
-                    まだ提出がありません
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {submissions.map((submission) => (
-                  <Card
-                    key={submission.id}
-                    className="border-glow bg-card transition-all duration-200 hover:glow-blue-sm"
-                  >
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg font-semibold">
-                            {submission.name}
-                          </CardTitle>
-                          <CardDescription className="mt-1 text-sm">
-                            {submission.email}
-                          </CardDescription>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-right space-y-1">
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(submission.created_at)}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {getSubmissionStatusBadge(submission.review_status)}
-                              <Badge className="bg-primary text-xs">
-                                {Array.isArray(submission.files) ? submission.files.length : 0}
-                                ファイル
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent>
-                        <Separator className="mb-4" />
-
-                        {/* ファイル一覧（検品カード付き） */}
-                        {Array.isArray(submission.files) && submission.files.length > 0 && (
-                          <div className="mb-6">
-                            <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
-                              <FileIcon className="h-4 w-4" />
-                              アップロードファイル
-                            </h4>
-                            <div className="grid grid-cols-1 gap-3">
-                              {submission.files.map((file: any, index: number) => (
-                                <FileReviewCard
-                                  key={index}
-                                  submissionId={submission.id}
-                                  fileIndex={index}
-                                  file={file}
-                                  onReviewUpdate={refreshSubmissions}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Figmaリンク */}
-                        {Array.isArray(submission.figma_links) &&
-                          submission.figma_links.length > 0 && (
-                            <div>
-                              <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
-                                <LinkIcon className="h-4 w-4" />
-                                Figmaリンク
-                              </h4>
-                              <div className="space-y-2">
-                                {submission.figma_links.map((link: string, index: number) => (
-                                  <div
-                                    key={index}
-                                    className="border border-border rounded-xl p-2.5 flex items-center justify-between"
-                                  >
-                                    <a
-                                      href={link}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="text-primary hover:text-primary/80 hover:underline truncate flex-1 min-w-0 text-sm"
-                                    >
-                                      {link}
-                                    </a>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => {
-                                        navigator.clipboard.writeText(link);
-                                        toast({
-                                          title: "リンクをコピーしました",
-                                        });
-                                      }}
-                                      className="ml-2 text-xs"
-                                    >
-                                      <Copy className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                      </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
       </main>
+
+      {/* スロット削除の確認ダイアログ */}
+      <AlertDialog
+        open={confirmDeleteSlot !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDeleteSlot(null);
+        }}
+      >
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-50 font-light">
+              スロット「{confirmDeleteSlot?.name}」を削除しますか？
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              このスロットに含まれるファイルも全て削除されます。この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-slate-600 bg-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:text-slate-100">
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDeleteSlot) handleDeleteSlot(confirmDeleteSlot.id, confirmDeleteSlot.name);
+                setConfirmDeleteSlot(null);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DarkLayout>
   );
 }

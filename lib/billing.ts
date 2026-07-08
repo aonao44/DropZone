@@ -1,4 +1,5 @@
 import { auth } from '@clerk/nextjs/server'
+import { getPlanLimits, type PlanLimits } from './plan-limits'
 
 /**
  * ユーザーがプレミアムプランに加入しているかチェック
@@ -13,6 +14,25 @@ export async function checkPremiumAccess(): Promise<boolean> {
 
   // 🚨 一時的に全ユーザーにプレミアムアクセスを付与
   return true
+}
+
+/**
+ * ログイン中ユーザーのプラン上限を取得
+ * 課金を再有効化する際は checkPremiumAccess() の1箇所を戻せば全体に反映される
+ */
+export async function getEffectiveLimits(): Promise<PlanLimits> {
+  return getPlanLimits(await checkPremiumAccess())
+}
+
+/**
+ * プロジェクト所有者のプラン上限を取得（提出APIなど非ログイン経路用）
+ * 提出者ではなく「プロジェクトの所有者」のプランで上限が決まる
+ *
+ * 🚨 課金無効化中は全員にプレミアム上限を適用
+ * TODO: 課金再有効化時は ownerUserId から Clerk Backend API で所有者のプランを判定する
+ */
+export async function getProjectOwnerLimits(_ownerUserId: string | null): Promise<PlanLimits> {
+  return getPlanLimits(true)
 }
 
 /**

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, ReactNode } from 'react'
+import React, { useEffect, useRef, useState, useSyncExternalStore, ReactNode } from 'react'
 
 interface DarkLayoutProps {
   children: ReactNode
@@ -8,56 +8,78 @@ interface DarkLayoutProps {
   showRipples?: boolean
 }
 
+// prefers-reduced-motion の購読（SSR では false）
+function useReducedMotion(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+      mql.addEventListener('change', onChange)
+      return () => mql.removeEventListener('change', onChange)
+    },
+    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    () => false
+  )
+}
+
 export function DarkLayout({ children, showMouseGradient = true, showRipples = true }: DarkLayoutProps) {
-  const [mouseGradientStyle, setMouseGradientStyle] = useState({
-    left: '0px',
-    top: '0px',
-    opacity: 0,
-  })
+  const reducedMotion = useReducedMotion()
+  const gradientRef = useRef<HTMLDivElement>(null)
+  const rafRef = useRef<number | null>(null)
+  const lastPosRef = useRef({ x: 0, y: 0 })
+  const rippleIdRef = useRef(0)
   const [ripples, setRipples] = useState<Array<{ id: number; x: number; y: number }>>([])
 
+  // マウス追従グラデーション: React の再レンダーを介さず ref + rAF で直接更新する
   useEffect(() => {
-    if (!showMouseGradient) return
+    if (!showMouseGradient || reducedMotion) return
+    const el = gradientRef.current
+    if (!el) return
 
     const handleMouseMove = (e: MouseEvent) => {
-      setMouseGradientStyle({
-        left: `${e.clientX}px`,
-        top: `${e.clientY}px`,
-        opacity: 1,
+      lastPosRef.current = { x: e.clientX, y: e.clientY }
+      if (rafRef.current !== null) return
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = null
+        el.style.transform = `translate(${lastPosRef.current.x}px, ${lastPosRef.current.y}px) translate(-50%, -50%)`
+        el.style.opacity = '1'
       })
     }
     const handleMouseLeave = () => {
-      setMouseGradientStyle(prev => ({ ...prev, opacity: 0 }))
+      el.style.opacity = '0'
     }
-    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mousemove', handleMouseMove, { passive: true })
     document.addEventListener('mouseleave', handleMouseLeave)
     return () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current)
+      rafRef.current = null
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseleave', handleMouseLeave)
     }
-  }, [showMouseGradient])
+  }, [showMouseGradient, reducedMotion])
 
   useEffect(() => {
-    if (!showRipples) return
+    if (!showRipples || reducedMotion) return
 
     const handleClick = (e: MouseEvent) => {
-      const newRipple = { id: Date.now(), x: e.clientX, y: e.clientY }
+      const newRipple = { id: rippleIdRef.current++, x: e.clientX, y: e.clientY }
       setRipples(prev => [...prev, newRipple])
       setTimeout(() => setRipples(prev => prev.filter(r => r.id !== newRipple.id)), 1000)
     }
     document.addEventListener('click', handleClick)
     return () => document.removeEventListener('click', handleClick)
-  }, [showRipples])
+  }, [showRipples, reducedMotion])
 
   const pageStyles = `
     #mouse-gradient-dark {
       position: fixed;
+      left: 0;
+      top: 0;
       pointer-events: none;
       border-radius: 9999px;
       background-image: radial-gradient(circle, rgba(156, 163, 175, 0.05), rgba(107, 114, 128, 0.05), transparent 70%);
-      transform: translate(-50%, -50%);
-      will-change: left, top, opacity;
-      transition: left 70ms linear, top 70ms linear, opacity 300ms ease-out;
+      transform: translate(-100px, -100px) translate(-50%, -50%);
+      will-change: transform, opacity;
+      transition: opacity 300ms ease-out;
     }
     @keyframes pulse-glow {
       0%, 100% { opacity: 0.1; transform: scale(1); }
@@ -92,6 +114,12 @@ export function DarkLayout({ children, showMouseGradient = true, showRipples = t
       opacity: 0;
       animation: pulse-glow 3s ease-in-out infinite;
     }
+    @media (prefers-reduced-motion: reduce) {
+      #mouse-gradient-dark { display: none; }
+      .grid-line, .detail-dot, .ripple-effect { animation: none; }
+      .grid-line { opacity: 0.15; stroke-dashoffset: 0; }
+      .detail-dot { opacity: 0.2; }
+    }
   `
 
   return (
@@ -123,24 +151,23 @@ export function DarkLayout({ children, showMouseGradient = true, showRipples = t
         </div>
 
         {/* Mouse Gradient */}
-        {showMouseGradient && (
+        {showMouseGradient && !reducedMotion && (
           <div
+            ref={gradientRef}
             id="mouse-gradient-dark"
             className="w-60 h-60 blur-xl sm:w-80 sm:h-80 sm:blur-2xl md:w-96 md:h-96 md:blur-3xl"
-            style={{
-              left: mouseGradientStyle.left,
-              top: mouseGradientStyle.top,
-              opacity: mouseGradientStyle.opacity,
-            }}
+            style={{ opacity: 0 }}
+            aria-hidden="true"
           ></div>
         )}
 
         {/* Ripples */}
-        {showRipples && ripples.map(ripple => (
+        {showRipples && !reducedMotion && ripples.map(ripple => (
           <div
             key={ripple.id}
             className="ripple-effect"
             style={{ left: `${ripple.x}px`, top: `${ripple.y}px` }}
+            aria-hidden="true"
           ></div>
         ))}
       </div>

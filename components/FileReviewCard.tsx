@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Check, X, Loader2, MessageSquare } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, X, Loader2, MessageSquare, ZoomIn, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { DownloadButton } from "@/components/DownloadButton";
 import { useToast } from "@/hooks/use-toast";
 import type { ReviewStatus } from "@/lib/types";
@@ -85,8 +96,22 @@ export function FileReviewCard({
   const [rejectComment, setRejectComment] = useState("");
   const [currentStatus, setCurrentStatus] = useState<ReviewStatus>(reviewStatus);
   const [currentComment, setCurrentComment] = useState(reviewComment);
+  const [showLightbox, setShowLightbox] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isImage = isImageFile(file.name);
+
+  // ESCキーでライトボックスを閉じる
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showLightbox) {
+        setShowLightbox(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showLightbox]);
 
   const handleApprove = async () => {
     setIsLoading(true);
@@ -178,6 +203,41 @@ export function FileReviewCard({
     }
   };
 
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await fetch("/api/reviews/files", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          submission_id: submissionId,
+          file_index: fileIndex,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "削除に失敗しました");
+      }
+
+      toast({
+        title: "削除しました",
+        description: `${file.name} を削除しました`,
+      });
+      setShowDeleteDialog(false);
+      onReviewUpdate?.();
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: error instanceof Error ? error.message : "削除に失敗しました",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // ステータスに応じた背景色
   const cardBgColor =
     currentStatus === "approved"
@@ -192,10 +252,14 @@ export function FileReviewCard({
         className={`border rounded-xl p-4 transition-all duration-200 ${cardBgColor}`}
       >
         <div className="flex gap-4">
-          {/* サムネイル */}
+          {/* サムネイル（クリックで拡大表示） */}
           <div className="flex-shrink-0">
             {isImage ? (
-              <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-muted">
+              <button
+                type="button"
+                onClick={() => setShowLightbox(true)}
+                className="relative w-24 h-24 rounded-lg overflow-hidden bg-muted group cursor-pointer transition-transform hover:scale-105"
+              >
                 <Image
                   src={file.url}
                   alt={file.name}
@@ -203,7 +267,11 @@ export function FileReviewCard({
                   className="object-cover"
                   sizes="96px"
                 />
-              </div>
+                {/* ホバー時のオーバーレイ */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <ZoomIn className="w-6 h-6 text-white" />
+                </div>
+              </button>
             ) : (
               <div className="w-24 h-24 rounded-lg bg-muted flex items-center justify-center">
                 <span className="text-2xl">📄</span>
@@ -273,6 +341,20 @@ export function FileReviewCard({
                   差戻し
                 </Button>
               )}
+
+              {/* 削除ボタン（承認済み以外で表示） */}
+              {currentStatus !== "approved" && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={isLoading || isDeleting}
+                  className="text-xs text-red-400 border-red-500/30 hover:bg-red-500/10"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  削除
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -318,6 +400,90 @@ export function FileReviewCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ライトボックスモーダル - 高速表示 */}
+      <AnimatePresence>
+        {showLightbox && isImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
+            onClick={() => setShowLightbox(false)}
+          >
+            {/* 閉じるボタン */}
+            <button
+              type="button"
+              onClick={() => setShowLightbox(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+
+            {/* ファイル名 */}
+            <div className="absolute top-4 left-4 text-white text-sm font-light truncate max-w-[60%]">
+              {file.name}
+            </div>
+
+            {/* 画像 */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="relative max-w-[90vw] max-h-[85vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Image
+                src={file.url}
+                alt={file.name}
+                width={1200}
+                height={800}
+                className="object-contain max-w-full max-h-[85vh] rounded-lg"
+                priority
+                unoptimized
+              />
+            </motion.div>
+
+            {/* 操作ヒント */}
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-xs font-light">
+              クリックまたは ESC キーで閉じる
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 削除確認ダイアログ */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ファイルを削除しますか？</AlertDialogTitle>
+            <AlertDialogDescription>
+              「{file.name}」を削除します。この操作は元に戻せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  削除中...
+                </>
+              ) : (
+                "削除する"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
