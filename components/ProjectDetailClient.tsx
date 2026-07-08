@@ -29,6 +29,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { ReviewStatus, ProjectSlot, SlotAcceptType } from "@/lib/types";
 import { ACCEPT_TYPE_OPTIONS } from "@/lib/slot-templates";
 
@@ -104,6 +114,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
 
   // スロット削除用の状態
   const [deletingSlotId, setDeletingSlotId] = useState<string | null>(null);
+  const [confirmDeleteSlot, setConfirmDeleteSlot] = useState<{ id: string; name: string } | null>(null);
 
   // データを再取得する関数
   const refreshSubmissions = () => {
@@ -167,10 +178,6 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
 
   // スロット削除処理
   const handleDeleteSlot = async (slotId: string, slotName: string) => {
-    if (!confirm(`スロット「${slotName}」を削除してもよろしいですか？\nこのスロットに含まれるファイルも全て削除されます。`)) {
-      return;
-    }
-
     setDeletingSlotId(slotId);
     try {
       const response = await fetch(`/api/projects/${project.id}/slots/${slotId}`, {
@@ -260,7 +267,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
               variant="outline"
               className="text-base"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
               戻る
             </Button>
             <UserButton
@@ -299,7 +306,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                   variant="outline"
                   className="border-glow font-semibold px-3 py-2 sm:px-4 sm:py-3 rounded-xl transition-all duration-200 text-xs sm:text-sm hover:glow-blue-sm"
                 >
-                  <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                  <Copy className="mr-2 h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                   フォームURLをコピー
                 </Button>
               </div>
@@ -315,106 +322,21 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                 <div className="bg-muted p-3 rounded-xl">
                   <p className="text-xs text-muted-foreground mb-2">検品ステータス</p>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-green-500/20 text-green-400 tabular-nums">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-400" aria-hidden="true"></span>
                       OK {slots.reduce((total, slot) => total + (slot.files?.filter(f => f.review_status === 'approved').length || 0), 0)}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-purple-500/20 text-purple-400 tabular-nums">
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400" aria-hidden="true"></span>
                       NG {slots.reduce((total, slot) => total + (slot.files?.filter(f => f.review_status === 'rejected').length || 0), 0)}
                     </span>
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-yellow-500/20 text-yellow-400 tabular-nums">
+                      <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" aria-hidden="true"></span>
                       未確認 {slots.reduce((total, slot) => total + (slot.files?.filter(f => f.review_status === 'pending').length || 0), 0)}
                     </span>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* プレミアム機能セクション */}
-          <Card className="mb-8 border-glow bg-card transition-all duration-200">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-yellow-500" />
-                <CardTitle className="text-lg">プレミアム機能</CardTitle>
-              </div>
-              <CardDescription className="text-sm">
-                全ファイルを一括でダウンロードできます
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {hasPremium ? (
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    プレミアムプランをご利用中です。全てのファイルをZIP形式で一括ダウンロードできます。
-                  </p>
-                  <Button
-                    onClick={async () => {
-                      try {
-                        toast({
-                          title: "ZIP作成中",
-                          description: "ファイルをまとめています...",
-                        });
-
-                        const response = await fetch(
-                          `/api/download-all?projectSlug=${project.slug}`
-                        );
-
-                        if (!response.ok) {
-                          throw new Error("ダウンロードに失敗しました");
-                        }
-
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = `${project.title}_all_files.zip`;
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
-                        document.body.removeChild(a);
-
-                        toast({
-                          title: "ダウンロード完了",
-                          description: "全てのファイルをZIPでダウンロードしました",
-                        });
-                      } catch (error) {
-                        console.error("Download error:", error);
-                        toast({
-                          title: "エラーが発生しました",
-                          description: "ファイルのダウンロードに失敗しました",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                    className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
-                  >
-                    <Download className="mr-2 h-4 w-4" />
-                    全ファイルをZIPでダウンロード
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-muted">
-                    <Lock className="h-5 w-5 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      {/* 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化 */}
-                      <p className="text-sm font-medium mb-1">プレミアムプランが必要です</p>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        ZIP一括ダウンロード機能を利用するには、プレミアムプランへのアップグレードが必要です。
-                      </p>
-                      {/* <Link href="/pricing">
-                        <Button variant="outline" size="sm" className="border-glow hover:glow-blue-sm">
-                          <Sparkles className="mr-2 h-4 w-4" />
-                          プレミアムプランを見る
-                        </Button>
-                      </Link> */}
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
           </Card>
 
@@ -426,7 +348,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                 <Dialog open={isAddSlotOpen} onOpenChange={setIsAddSlotOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="border-slate-600 hover:bg-slate-700">
-                      <Plus className="h-4 w-4 mr-1" />
+                      <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                       スロット追加
                     </Button>
                   </DialogTrigger>
@@ -511,8 +433,8 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                       >
                         {isAddingSlot ? (
                           <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            追加中...
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                            追加中…
                           </>
                         ) : (
                           "追加"
@@ -533,15 +455,16 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleDeleteSlot(slot.id, slot.name)}
+                      onClick={() => setConfirmDeleteSlot({ id: slot.id, name: slot.name })}
                       disabled={deletingSlotId === slot.id}
+                      aria-label={`スロット「${slot.name}」を削除`}
                       className="absolute top-2 right-2 h-7 w-7 p-0 bg-slate-700/80 hover:bg-red-600 text-slate-400 hover:text-white"
                       title="スロットを削除"
                     >
                       {deletingSlotId === slot.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                       ) : (
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                       )}
                     </Button>
                   </div>
@@ -583,12 +506,12 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                         <div className="flex items-center gap-4">
                           <div className="text-right space-y-1">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
+                              <Calendar className="h-3 w-3" aria-hidden="true" />
                               {formatDate(submission.created_at)}
                             </div>
                             <div className="flex items-center gap-2">
                               {getSubmissionStatusBadge(submission.review_status)}
-                              <Badge className="bg-primary text-xs">
+                              <Badge className="bg-primary text-xs tabular-nums">
                                 {Array.isArray(submission.files) ? submission.files.length : 0}
                                 ファイル
                               </Badge>
@@ -605,7 +528,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                         {Array.isArray(submission.files) && submission.files.length > 0 && (
                           <div className="mb-6">
                             <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
-                              <FileIcon className="h-4 w-4" />
+                              <FileIcon className="h-4 w-4" aria-hidden="true" />
                               アップロードファイル
                             </h4>
                             <div className="grid grid-cols-1 gap-3">
@@ -620,6 +543,8 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                                     submissionId={submission.id}
                                     fileIndex={originalIndex}
                                     file={file}
+                                    reviewStatus={file.reviewStatus}
+                                    reviewComment={file.reviewComment}
                                     onReviewUpdate={refreshSubmissions}
                                   />
                                 );
@@ -633,7 +558,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                           submission.figma_links.length > 0 && (
                             <div>
                               <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
-                                <LinkIcon className="h-4 w-4" />
+                                <LinkIcon className="h-4 w-4" aria-hidden="true" />
                                 Figmaリンク
                               </h4>
                               <div className="space-y-2">
@@ -661,7 +586,7 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
                                       }}
                                       className="ml-2 text-xs"
                                     >
-                                      <Copy className="h-3 w-3" />
+                                      <Copy className="h-3 w-3" aria-hidden="true" />
                                     </Button>
                                   </div>
                                 ))}
@@ -675,8 +600,126 @@ export function ProjectDetailClient({ project, submissions: initialSubmissions, 
             )}
           </div>
           )}
+
+          {/* プレミアム機能セクション（検品対象の下に配置） */}
+          <Card className="mt-8 border-glow bg-card transition-all duration-200">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-yellow-500" aria-hidden="true" />
+                <CardTitle className="text-lg">プレミアム機能</CardTitle>
+              </div>
+              <CardDescription className="text-sm">
+                全ファイルを一括でダウンロードできます
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasPremium ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    プレミアムプランをご利用中です。全てのファイルをZIP形式で一括ダウンロードできます。
+                  </p>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        toast({
+                          title: "ZIP作成中",
+                          description: "ファイルをまとめています…",
+                        });
+
+                        const response = await fetch(
+                          `/api/download-all?projectSlug=${project.slug}`
+                        );
+
+                        if (!response.ok) {
+                          throw new Error("ダウンロードに失敗しました");
+                        }
+
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = `${project.title}_all_files.zip`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
+
+                        toast({
+                          title: "ダウンロード完了",
+                          description: "全てのファイルをZIPでダウンロードしました",
+                        });
+                      } catch (error) {
+                        console.error("Download error:", error);
+                        toast({
+                          title: "エラーが発生しました",
+                          description: "ファイルのダウンロードに失敗しました",
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                    className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600"
+                  >
+                    <Download className="mr-2 h-4 w-4" aria-hidden="true" />
+                    全ファイルをZIPでダウンロード
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50 border border-muted">
+                    <Lock className="h-5 w-5 text-muted-foreground mt-0.5" aria-hidden="true" />
+                    <div className="flex-1">
+                      {/* 🚨 一時的に無効化: Vercelデプロイ時に課金機能を無効化 */}
+                      <p className="text-sm font-medium mb-1">プレミアムプランが必要です</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        ZIP一括ダウンロード機能を利用するには、プレミアムプランへのアップグレードが必要です。
+                      </p>
+                      {/* <Link href="/pricing">
+                        <Button variant="outline" size="sm" className="border-glow hover:glow-blue-sm">
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          プレミアムプランを見る
+                        </Button>
+                      </Link> */}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
+
+      {/* スロット削除の確認ダイアログ */}
+      <AlertDialog
+        open={confirmDeleteSlot !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDeleteSlot(null);
+        }}
+      >
+        <AlertDialogContent className="bg-slate-900 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-50 font-light">
+              スロット「{confirmDeleteSlot?.name}」を削除しますか？
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              このスロットに含まれるファイルも全て削除されます。この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-slate-600 bg-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:text-slate-100">
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDeleteSlot) handleDeleteSlot(confirmDeleteSlot.id, confirmDeleteSlot.name);
+                setConfirmDeleteSlot(null);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DarkLayout>
   );
 }

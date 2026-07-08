@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { DashboardClient } from "@/components/DashboardClient";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
+import { checkPremiumAccess } from "@/lib/billing";
 
 type Project = {
   id: string;
@@ -22,15 +23,14 @@ export default async function DashboardPage() {
   const supabase = createClient(cookieStore);
 
   // 認証チェック
-  const { userId, has } = await auth();
+  const { userId } = await auth();
 
   if (!userId) {
     redirect("/sign-in");
   }
 
-  // Clerk Billingでプランをチェック
-  // Plan Keys: "free" (無料プラン), "premium" (有料プラン)
-  const hasPremiumAccess = has({ plan: "premium" });
+  // プラン判定は lib/billing.ts に集約（課金再有効化もそこだけで済む）
+  const hasPremiumAccess = await checkPremiumAccess();
 
   // ログインユーザーのプロジェクト一覧と提出数を取得
   const { data: projectsData, error } = await supabase

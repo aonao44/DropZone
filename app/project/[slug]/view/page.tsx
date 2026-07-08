@@ -73,14 +73,20 @@ export default async function ProjectViewPage({
     console.error("Error fetching submissions:", submissionsError);
   }
 
-  // file_reviewsからis_deleted情報を取得
+  // file_reviewsからis_deleted・検品ステータス情報を取得
   const submissionIds = (submissions || []).map((s) => s.id);
-  let fileReviews: { submission_id: string; file_index: number; is_deleted: boolean }[] = [];
+  let fileReviews: {
+    submission_id: string;
+    file_index: number;
+    is_deleted: boolean;
+    review_status?: ReviewStatus;
+    review_comment?: string;
+  }[] = [];
 
   if (submissionIds.length > 0) {
     const { data: reviews, error: reviewsError } = await supabase
       .from("file_reviews")
-      .select("submission_id, file_index, is_deleted")
+      .select("submission_id, file_index, is_deleted, review_status, review_comment")
       .in("submission_id", submissionIds);
 
     if (reviewsError) {
@@ -131,27 +137,29 @@ export default async function ProjectViewPage({
     };
   });
 
-  // 削除済みファイルを除外した提出データを作成
+  // 削除済みファイルを除外し、ファイルごとの検品ステータスを付与した提出データを作成
   const submissionsWithFilteredFiles = (submissions || []).map((submission) => {
-    const filteredFiles = (submission.files || []).filter((_file: unknown, index: number) => {
-      const review = fileReviews.find(
-        (r) => r.submission_id === submission.id && r.file_index === index
-      );
-      // 削除済みでないファイルのみ残す
-      return !review?.is_deleted;
-    });
+    const filesWithIndex: { file: any; index: number; review: (typeof fileReviews)[number] | undefined }[] =
+      (submission.files || []).map((file: any, index: number) => {
+        const review = fileReviews.find(
+          (r) => r.submission_id === submission.id && r.file_index === index
+        );
+        return { file, index, review };
+      });
+
+    // 削除済みでないファイルのみ残す
+    const kept = filesWithIndex.filter(({ review }) => !review?.is_deleted);
+
     return {
       ...submission,
-      files: filteredFiles,
+      // ファイルごとの検品ステータス/コメントをFileReviewCardへ渡せるよう付与
+      files: kept.map(({ file, review }) => ({
+        ...file,
+        reviewStatus: review?.review_status,
+        reviewComment: review?.review_comment,
+      })),
       // 元のファイルインデックスを保持するためのマッピングも作成
-      originalFileIndices: (submission.files || [])
-        .map((_file: unknown, index: number) => {
-          const review = fileReviews.find(
-            (r) => r.submission_id === submission.id && r.file_index === index
-          );
-          return !review?.is_deleted ? index : null;
-        })
-        .filter((index: number | null): index is number => index !== null),
+      originalFileIndices: kept.map(({ index }) => index),
     };
   });
 

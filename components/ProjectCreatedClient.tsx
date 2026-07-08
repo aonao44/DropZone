@@ -40,7 +40,7 @@ export function ProjectCreatedClient({ project, slug }: ProjectCreatedClientProp
         {/* 成功アイコン */}
         <div className="text-center mb-5">
           <div className="inline-flex items-center justify-center w-12 h-12 lg:w-14 lg:h-14 bg-green-500/20 rounded-full mb-3 backdrop-blur-sm border border-green-500/30">
-            <CheckCircle className="w-7 h-7 lg:w-9 lg:h-9 text-green-400" />
+            <CheckCircle className="w-7 h-7 lg:w-9 lg:h-9 text-green-400" aria-hidden="true" />
           </div>
           <h1 className="text-xl lg:text-2xl font-extralight text-slate-50 mb-1.5 tracking-tight">
             プロジェクトが作成されました
@@ -66,7 +66,7 @@ export function ProjectCreatedClient({ project, slug }: ProjectCreatedClientProp
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">メール:</span>
-              <span className="text-slate-200">{project.client_email}</span>
+              <span className="text-slate-200 truncate ml-2 min-w-0">{project.client_email}</span>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@ export function ProjectCreatedClient({ project, slug }: ProjectCreatedClientProp
 
           <div className="bg-slate-900/50 rounded-lg p-2.5 mb-2.5 border border-slate-700/30">
             <code className="text-cyan-400 text-xs break-all font-mono">
-              {submitUrl || '読み込み中...'}
+              {submitUrl || '読み込み中…'}
             </code>
           </div>
 

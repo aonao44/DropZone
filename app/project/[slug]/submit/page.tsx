@@ -67,8 +67,6 @@ export default async function SubmitPage({ params }: { params: Promise<{ slug: s
 
   // 過去の提出者情報を取得（最新の提出）
   // RLSの問題を回避するため、認証済みクライアントを使用
-  console.log("Looking for submissions with project_slug:", slug);
-
   const { data: previousSubmissions, error: submissionError } = await supabase
     .from("submissions")
     .select("name, email")
@@ -78,13 +76,9 @@ export default async function SubmitPage({ params }: { params: Promise<{ slug: s
 
   if (submissionError) {
     console.error("Error fetching previous submissions:", submissionError);
-    console.error("Error details:", JSON.stringify(submissionError, null, 2));
   }
 
-  console.log("Previous submissions:", previousSubmissions);
-
   const previousSubmitter = previousSubmissions?.[0] || null;
-  console.log("Previous submitter:", previousSubmitter);
 
   return (
     <DarkLayout>

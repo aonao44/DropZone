@@ -4,13 +4,13 @@
 
 import * as dotenv from 'dotenv'
 import { resolve } from 'path'
-import { Clerk } from '@clerk/clerk-sdk-node'
+import { createClerkClient } from '@clerk/backend'
 
 // .env.localを読み込む
 dotenv.config({ path: resolve(process.cwd(), '.env.local') })
 
 // Clerk SDKの初期化
-const clerk = Clerk({ secretKey: process.env.CLERK_SECRET_KEY })
+const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! })
 
 async function deleteUser() {
   const emailToDelete = 'aokinao44@gmail.com' // 青木 直樹のメールアドレス
@@ -19,7 +19,7 @@ async function deleteUser() {
 
   try {
     // メールアドレスでユーザーを検索
-    const users = await clerk.users.getUserList({
+    const { data: users } = await clerk.users.getUserList({
       emailAddress: [emailToDelete],
     })
 

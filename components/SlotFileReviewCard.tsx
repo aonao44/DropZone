@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import { Clock, ChevronDown, ChevronUp, Download, ZoomIn, Check, X, MessageSquare, Loader2, User, Images, Package } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { ProjectSlot, SlotFile, ReviewStatus } from "@/lib/types";
 import { ACCEPT_TYPE_CONFIG } from "@/lib/slot-templates";
 
@@ -26,13 +27,34 @@ interface SlotFileReviewCardProps {
 }
 
 export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardProps) {
+  const { toast } = useToast();
+  const shouldReduceMotion = useReducedMotion();
   const [isHistoryExpanded, setIsHistoryExpanded] = useState(false);
-  const [selectedVersion, setSelectedVersion] = useState<SlotFile | null>(slot.latest_file || null);
+  const [selectedFileId, setSelectedFileId] = useState<string | null>(null);
   const [selectedBatchId, setSelectedBatchId] = useState<string | null>(null);
+  // レビュー送信中の楽観的表示（サーバー反映前にUIへ反映し、失敗時は破棄）
+  const [optimisticReview, setOptimisticReview] = useState<{
+    fileId: string;
+    status: ReviewStatus;
+    comment: string;
+  } | null>(null);
   const [isReviewing, setIsReviewing] = useState(false);
   const [isBatchReviewing, setIsBatchReviewing] = useState(false);
   const [comment, setComment] = useState("");
+  const [commentError, setCommentError] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<{ url: string; name: string } | null>(null);
+
+  // ライトボックス表示中はESCキーで閉じる
+  useEffect(() => {
+    if (!lightboxImage) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setLightboxImage(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxImage]);
 
   // マルチスロットかどうか
   const isMultiSlot = slot.accept_type === 'IMAGE_MULTI';
@@ -81,28 +103,28 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
     return batches.find((b) => b.submissionId === selectedBatchId) || null;
   }, [batches, selectedBatchId]);
 
-  // propsが変わった時にselectedVersionを同期
-  useEffect(() => {
-    if (slot.latest_file) {
-      // 選択中のバージョンを更新されたデータで置き換え
-      const updatedFile = slot.files?.find((f) => f.id === selectedVersion?.id);
-      if (updatedFile) {
-        setSelectedVersion(updatedFile);
-      } else {
-        setSelectedVersion(slot.latest_file);
+  // 選択中のバージョン（派生値）: 選択IDが現在のデータに無ければ最新ファイルへフォールバック
+  const selectedVersion = useMemo<SlotFile | null>(() => {
+    let base: SlotFile | null = null;
+    if (isMultiSlot) {
+      if (selectedBatch && selectedBatch.files.length > 0) {
+        base =
+          selectedBatch.files.find((f) => f.id === selectedFileId) ??
+          selectedBatch.files.find((f) => f.id === slot.latest_file?.id) ??
+          selectedBatch.files[0];
       }
+    } else {
+      base = slot.files?.find((f) => f.id === selectedFileId) ?? slot.latest_file ?? null;
     }
-  }, [slot.files, slot.latest_file]);
-
-  // バッチ選択時にそのバッチの最初のファイルを選択
-  useEffect(() => {
-    if (selectedBatch && selectedBatch.files.length > 0) {
-      const currentFileInBatch = selectedBatch.files.find((f) => f.id === selectedVersion?.id);
-      if (!currentFileInBatch) {
-        setSelectedVersion(selectedBatch.files[0]);
-      }
+    if (base && optimisticReview?.fileId === base.id) {
+      return {
+        ...base,
+        review_status: optimisticReview.status,
+        review_comment: optimisticReview.comment,
+      };
     }
-  }, [selectedBatch]);
+    return base;
+  }, [isMultiSlot, selectedBatch, selectedFileId, slot.files, slot.latest_file, optimisticReview]);
 
   // シングルスロット用
   const activeFiles = slot.files?.filter((f) => !f.is_deleted) || [];
@@ -110,13 +132,22 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
   const hasHistory = historyFiles.length > 0;
   const hasFiles = slot.files && slot.files.length > 0;
 
+  // ファイルサイズ表示用のヘルパー関数（1MB以上はMB表示）
+  const formatFileSize = (bytes: number): string => {
+    const kb = bytes / 1024;
+    if (kb >= 1024) {
+      return `${(kb / 1024).toFixed(1)} MB`;
+    }
+    return `${kb.toFixed(1)} KB`;
+  };
+
   // ステータス表示用のヘルパー関数
   const getStatusDisplay = (status: ReviewStatus) => {
     switch (status) {
       case "approved":
-        return { icon: <Check className="h-3 w-3" />, label: "OK", className: "bg-green-500/20 text-green-400 border-green-500/30" };
+        return { icon: <Check className="h-3 w-3" aria-hidden="true" />, label: "OK", className: "bg-green-500/20 text-green-400 border-green-500/30" };
       case "rejected":
-        return { icon: <X className="h-3 w-3" />, label: "NG", className: "bg-purple-500/20 text-purple-400 border-purple-500/30" };
+        return { icon: <X className="h-3 w-3" aria-hidden="true" />, label: "NG", className: "bg-purple-500/20 text-purple-400 border-purple-500/30" };
       default:
         return { icon: null, label: "確認中", className: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" };
     }
@@ -125,14 +156,20 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
   // レビュー送信
   const handleReview = async (status: "approved" | "rejected") => {
     if (!selectedVersion) return;
+
+    // NG時はコメント必須
+    if (status === "rejected" && !comment.trim()) {
+      setCommentError(true);
+      return;
+    }
+    setCommentError(false);
     setIsReviewing(true);
 
     // 楽観的更新：即座にUIを更新
-    const previousVersion = selectedVersion;
-    setSelectedVersion({
-      ...selectedVersion,
-      review_status: status,
-      review_comment: status === "rejected" ? comment : "",
+    setOptimisticReview({
+      fileId: selectedVersion.id,
+      status,
+      comment: status === "rejected" ? comment : "",
     });
 
     try {
@@ -147,7 +184,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
 
       if (!response.ok) {
         // エラー時はロールバック
-        setSelectedVersion(previousVersion);
+        setOptimisticReview(null);
         throw new Error("レビューの保存に失敗しました");
       }
 
@@ -155,7 +192,11 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
       onReviewUpdate?.();
     } catch (error) {
       console.error("Review error:", error);
-      alert("レビューの保存に失敗しました");
+      toast({
+        title: "エラー",
+        description: "レビューの保存に失敗しました",
+        variant: "destructive",
+      });
     } finally {
       setIsReviewing(false);
     }
@@ -191,6 +232,13 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
   // バッチ全体のレビュー
   const handleBatchReview = async (status: "approved" | "rejected") => {
     if (!selectedBatch) return;
+
+    // NG時はコメント必須
+    if (status === "rejected" && !comment.trim()) {
+      setCommentError(true);
+      return;
+    }
+    setCommentError(false);
     setIsBatchReviewing(true);
 
     try {
@@ -213,12 +261,17 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
       }
 
       setComment("");
-      onReviewUpdate?.();
     } catch (error) {
       console.error("Batch review error:", error);
-      alert("一括レビューの保存に失敗しました");
+      toast({
+        title: "エラー",
+        description: "一括レビューの保存に失敗しました。反映済みの結果を確認してください。",
+        variant: "destructive",
+      });
     } finally {
+      // 途中で失敗しても、サーバーに反映済みの分をUIへ反映させる
       setIsBatchReviewing(false);
+      onReviewUpdate?.();
     }
   };
 
@@ -284,7 +337,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                 {slot.files?.filter((f) => !f.is_deleted).map((file) => (
                   <button
                     key={file.id}
-                    onClick={() => setSelectedVersion(file)}
+                    onClick={() => setSelectedFileId(file.id)}
                     className={`px-2 py-1 text-xs rounded transition-colors ${
                       selectedVersion?.id === file.id
                         ? "bg-blue-500 text-white"
@@ -307,7 +360,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                   <button
                     key={`batch-${batchIndex}-${batch.version}`}
                     onClick={() => setSelectedBatchId(batch.submissionId)}
-                    className={`px-3 py-1.5 text-xs rounded-lg transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 text-xs rounded-lg transition-colors flex items-center gap-1.5 ${
                       selectedBatch?.submissionId === batch.submissionId
                         ? "bg-blue-500 text-white"
                         : "bg-slate-700 text-slate-300 hover:bg-slate-600"
@@ -333,8 +386,8 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                 <div className={`rounded-lg border p-3 ${getStatusDisplay(getBatchReviewStatus(selectedBatch)).className}`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-slate-400" />
-                      <span className="text-sm font-medium text-slate-200">
+                      <Package className="h-4 w-4 text-slate-400" aria-hidden="true" />
+                      <span className="text-sm font-medium text-slate-200 tabular-nums">
                         v{selectedBatch.version} - {selectedBatch.files.length}ファイル
                       </span>
                       <span className={`text-xs px-2 py-0.5 rounded ${getStatusDisplay(getBatchReviewStatus(selectedBatch)).className}`}>
@@ -346,9 +399,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                         size="sm"
                         variant="outline"
                         onClick={() => handleBatchDownload(selectedBatch)}
-                        className="h-7 text-xs border-yellow-500/50 text-yellow-400 hover:bg-yellow-500 hover:text-black hover:border-yellow-500 hover:scale-105 transition-all"
+                        className="h-7 text-xs border-yellow-500/50 text-yellow-400 hover:bg-yellow-500 hover:text-black hover:border-yellow-500 motion-safe:hover:scale-105 transition-[background-color,border-color,color,transform]"
                       >
-                        <Download className="h-3 w-3 mr-1" />
+                        <Download className="h-3 w-3 mr-1" aria-hidden="true" />
                         まとめてDL
                       </Button>
                       {hasPendingInBatch(selectedBatch) && (
@@ -357,9 +410,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                             size="sm"
                             onClick={() => handleBatchReview("approved")}
                             disabled={isBatchReviewing}
-                            className="h-7 text-xs bg-green-600 hover:bg-green-400 hover:text-black hover:scale-105 transition-all"
+                            className="h-7 text-xs bg-green-600 hover:bg-green-400 hover:text-black motion-safe:hover:scale-105 transition-[background-color,border-color,color,transform]"
                           >
-                            {isBatchReviewing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
+                            {isBatchReviewing ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <Check className="h-3 w-3 mr-1" aria-hidden="true" />}
                             OK
                           </Button>
                           <Button
@@ -367,9 +420,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                             variant="outline"
                             onClick={() => handleBatchReview("rejected")}
                             disabled={isBatchReviewing}
-                            className="h-7 text-xs border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white hover:border-purple-500 hover:scale-105 transition-all"
+                            className="h-7 text-xs border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white hover:border-purple-500 motion-safe:hover:scale-105 transition-[background-color,border-color,color,transform]"
                           >
-                            {isBatchReviewing ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3 mr-1" />}
+                            {isBatchReviewing ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <X className="h-3 w-3 mr-1" aria-hidden="true" />}
                             NG
                           </Button>
                         </div>
@@ -382,24 +435,32 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                     <div className="mb-3">
                       <Textarea
                         value={comment}
-                        onChange={(e) => setComment(e.target.value)}
+                        onChange={(e) => {
+                          setComment(e.target.value);
+                          setCommentError(false);
+                        }}
                         placeholder="一括修正コメント（NG選択時に全ファイルに適用されます）"
                         className="h-12 text-xs bg-slate-900/50 border-slate-600 resize-none"
                       />
+                      {commentError && (
+                        <p className="mt-1 text-xs text-purple-400">修正指示を入力してください</p>
+                      )}
                     </div>
                   )}
 
                   {/* サムネイルグリッド */}
                   <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-2">
                     {selectedBatch.files.map((file, index) => (
-                      <div
+                      <button
                         key={file.id}
-                        className={`relative group cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${
+                        type="button"
+                        onClick={() => setSelectedFileId(file.id)}
+                        aria-label={`#${index + 1} ${file.file_name} を選択`}
+                        className={`relative group rounded-lg overflow-hidden border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
                           selectedVersion?.id === file.id
                             ? "border-blue-500 ring-2 ring-blue-500/30"
                             : "border-transparent hover:border-slate-600"
                         }`}
-                        onClick={() => setSelectedVersion(file)}
                       >
                         <div className="relative aspect-square bg-slate-800">
                           <Image
@@ -410,7 +471,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                             sizes="100px"
                           />
                           {/* インデックスバッジ */}
-                          <div className="absolute top-0.5 left-0.5 px-1 py-0.5 text-[9px] font-medium bg-black/60 text-white rounded">
+                          <div className="absolute top-0.5 left-0.5 px-1 py-0.5 text-[9px] font-medium bg-black/60 text-white rounded tabular-nums">
                             #{index + 1}
                           </div>
                           {/* ステータスバッジ */}
@@ -419,10 +480,10 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                           </div>
                           {/* ホバーオーバーレイ */}
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <ZoomIn className="w-4 h-4 text-white" />
+                            <ZoomIn className="w-4 h-4 text-white" aria-hidden="true" />
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
 
@@ -433,6 +494,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                         <button
                           type="button"
                           onClick={() => setLightboxImage({ url: selectedVersion.file_url, name: selectedVersion.file_name })}
+                          aria-label={`${selectedVersion.file_name} を拡大表示`}
                           className="relative w-16 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-slate-800 group cursor-pointer"
                         >
                           <Image
@@ -443,23 +505,23 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                             sizes="64px"
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <ZoomIn className="w-3 h-3 text-white" />
+                            <ZoomIn className="w-3 h-3 text-white" aria-hidden="true" />
                           </div>
                         </button>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-blue-400">
+                            <span className="text-xs font-medium text-blue-400 tabular-nums">
                               #{selectedBatch.files.findIndex((f) => f.id === selectedVersion.id) + 1}
                             </span>
                             <p className="text-sm text-slate-200 truncate">{selectedVersion.file_name}</p>
                           </div>
                           <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                             {selectedVersion.file_size && (
-                              <span>{(selectedVersion.file_size / 1024).toFixed(1)} KB</span>
+                              <span className="tabular-nums">{formatFileSize(selectedVersion.file_size)}</span>
                             )}
                             {selectedVersion.submitted_by_name && (
                               <span className="flex items-center gap-1">
-                                <User className="h-3 w-3" />
+                                <User className="h-3 w-3" aria-hidden="true" />
                                 {selectedVersion.submitted_by_name}
                               </span>
                             )}
@@ -469,9 +531,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                               size="sm"
                               variant="outline"
                               onClick={() => handleDownload(selectedVersion)}
-                              className="h-6 text-[10px] border-yellow-500/50 text-yellow-400 hover:bg-yellow-500 hover:text-black"
+                              className="h-6 text-[10px] border-yellow-500/50 text-yellow-400 hover:bg-yellow-500 hover:text-black transition-colors"
                             >
-                              <Download className="h-3 w-3 mr-1" />
+                              <Download className="h-3 w-3 mr-1" aria-hidden="true" />
                               DL
                             </Button>
                             {selectedVersion.review_status === "pending" && (
@@ -480,9 +542,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                                   size="sm"
                                   onClick={() => handleReview("approved")}
                                   disabled={isReviewing}
-                                  className="h-6 text-[10px] bg-green-600 hover:bg-green-400 hover:text-black"
+                                  className="h-6 text-[10px] bg-green-600 hover:bg-green-400 hover:text-black transition-colors"
                                 >
-                                  {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
+                                  {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <Check className="h-3 w-3 mr-1" aria-hidden="true" />}
                                   OK
                                 </Button>
                                 <Button
@@ -490,9 +552,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                                   variant="outline"
                                   onClick={() => handleReview("rejected")}
                                   disabled={isReviewing}
-                                  className="h-6 text-[10px] border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white"
+                                  className="h-6 text-[10px] border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white transition-colors"
                                 >
-                                  {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3 mr-1" />}
+                                  {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <X className="h-3 w-3 mr-1" aria-hidden="true" />}
                                   NG
                                 </Button>
                               </div>
@@ -501,7 +563,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                           {/* 個別コメント表示 */}
                           {selectedVersion.review_status === "rejected" && selectedVersion.review_comment && (
                             <div className="mt-2 p-2 bg-purple-500/10 rounded flex items-start gap-2 text-purple-300">
-                              <MessageSquare className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                              <MessageSquare className="h-3 w-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
                               <p className="text-xs">{selectedVersion.review_comment}</p>
                             </div>
                           )}
@@ -522,6 +584,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                 <button
                   type="button"
                   onClick={() => setLightboxImage({ url: selectedVersion.file_url, name: selectedVersion.file_name })}
+                  aria-label={`${selectedVersion.file_name} を拡大表示`}
                   className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-slate-800 group cursor-pointer"
                 >
                   <Image
@@ -532,7 +595,7 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                     sizes="96px"
                   />
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <ZoomIn className="w-5 h-5 text-white" />
+                    <ZoomIn className="w-5 h-5 text-white" aria-hidden="true" />
                   </div>
                 </button>
 
@@ -544,17 +607,17 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                       {getStatusDisplay(selectedVersion.review_status).icon}
                       {getStatusDisplay(selectedVersion.review_status).label}
                     </span>
-                    <span className="text-xs text-slate-500">v{selectedVersion.version}</span>
+                    <span className="text-xs text-slate-500 tabular-nums">v{selectedVersion.version}</span>
                     {selectedVersion.file_size && (
-                      <span className="text-xs text-slate-500">
-                        {(selectedVersion.file_size / 1024).toFixed(1)} KB
+                      <span className="text-xs text-slate-500 tabular-nums">
+                        {formatFileSize(selectedVersion.file_size)}
                       </span>
                     )}
                   </div>
                   {/* 提出者情報 */}
                   {selectedVersion.submitted_by_name && (
                     <div className="flex items-center gap-1 mt-1 text-xs text-slate-500">
-                      <User className="h-3 w-3" />
+                      <User className="h-3 w-3" aria-hidden="true" />
                       {selectedVersion.submitted_by_name}
                     </div>
                   )}
@@ -569,9 +632,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                       size="sm"
                       variant="outline"
                       onClick={() => handleDownload(selectedVersion)}
-                      className="h-7 text-xs border-yellow-500/50 text-yellow-400 hover:bg-yellow-500 hover:text-black hover:border-yellow-500 hover:scale-105 transition-all"
+                      className="h-7 text-xs border-yellow-500/50 text-yellow-400 hover:bg-yellow-500 hover:text-black hover:border-yellow-500 motion-safe:hover:scale-105 transition-[background-color,border-color,color,transform]"
                     >
-                      <Download className="h-3 w-3 mr-1" />
+                      <Download className="h-3 w-3 mr-1" aria-hidden="true" />
                       DL
                     </Button>
 
@@ -582,9 +645,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                           size="sm"
                           onClick={() => handleReview("approved")}
                           disabled={isReviewing}
-                          className="h-7 text-xs bg-green-600 hover:bg-green-400 hover:text-black hover:scale-105 transition-all"
+                          className="h-7 text-xs bg-green-600 hover:bg-green-400 hover:text-black motion-safe:hover:scale-105 transition-[background-color,border-color,color,transform]"
                         >
-                          {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3 mr-1" />}
+                          {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <Check className="h-3 w-3 mr-1" aria-hidden="true" />}
                           OK
                         </Button>
                         <Button
@@ -592,9 +655,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                           variant="outline"
                           onClick={() => handleReview("rejected")}
                           disabled={isReviewing}
-                          className="h-7 text-xs border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white hover:border-purple-500 hover:scale-105 transition-all"
+                          className="h-7 text-xs border-purple-500/50 text-purple-400 hover:bg-purple-500 hover:text-white hover:border-purple-500 motion-safe:hover:scale-105 transition-[background-color,border-color,color,transform]"
                         >
-                          {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" /> : <X className="h-3 w-3 mr-1" />}
+                          {isReviewing ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <X className="h-3 w-3 mr-1" aria-hidden="true" />}
                           NG
                         </Button>
                       </div>
@@ -608,17 +671,23 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                 <div className="mt-3">
                   <Textarea
                     value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                    onChange={(e) => {
+                      setComment(e.target.value);
+                      setCommentError(false);
+                    }}
                     placeholder="修正コメント（NG選択時に送信されます）"
                     className="h-16 text-xs bg-slate-900/50 border-slate-600 resize-none"
                   />
+                  {commentError && (
+                    <p className="mt-1 text-xs text-purple-400">修正指示を入力してください</p>
+                  )}
                 </div>
               )}
 
               {/* 修正コメント表示 */}
               {selectedVersion.review_status === "rejected" && selectedVersion.review_comment && (
                 <div className="mt-3 p-2 bg-purple-500/10 rounded flex items-start gap-2 text-purple-300">
-                  <MessageSquare className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                  <MessageSquare className="h-3 w-3 mt-0.5 flex-shrink-0" aria-hidden="true" />
                   <p className="text-xs">{selectedVersion.review_comment}</p>
                 </div>
               )}
@@ -633,9 +702,9 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                 onClick={() => setIsHistoryExpanded(!isHistoryExpanded)}
                 className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-300 transition-colors"
               >
-                <Clock className="h-3 w-3" />
-                過去のバージョン ({historyFiles.length})
-                {isHistoryExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                <Clock className="h-3 w-3" aria-hidden="true" />
+                過去のバージョン (<span className="tabular-nums">{historyFiles.length}</span>)
+                {isHistoryExpanded ? <ChevronUp className="h-3 w-3" aria-hidden="true" /> : <ChevronDown className="h-3 w-3" aria-hidden="true" />}
               </button>
 
               <AnimatePresence>
@@ -644,15 +713,17 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
                     className="overflow-hidden"
                   >
                     <div className="mt-2 space-y-1">
                       {historyFiles.map((file) => (
-                        <div
+                        <button
                           key={file.id}
-                          className="flex items-center gap-2 p-2 rounded bg-slate-800/50 text-slate-400 cursor-pointer hover:bg-slate-700/50"
-                          onClick={() => setSelectedVersion(file)}
+                          type="button"
+                          onClick={() => setSelectedFileId(file.id)}
+                          aria-label={`過去バージョン v${file.version} ${file.file_name} を選択`}
+                          className="w-full flex items-center gap-2 p-2 rounded bg-slate-800/50 text-slate-400 hover:bg-slate-700/50 transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                         >
                           <div className="relative w-8 h-8 flex-shrink-0 rounded overflow-hidden bg-slate-700">
                             <Image
@@ -666,13 +737,13 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
                           <div className="flex-1 min-w-0">
                             <p className="text-xs truncate">{file.file_name}</p>
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-slate-500">v{file.version}</span>
+                              <span className="text-[10px] text-slate-500 tabular-nums">v{file.version}</span>
                               <span className={`text-[10px] px-1 py-0.5 rounded ${getStatusDisplay(file.review_status).className}`}>
                                 {getStatusDisplay(file.review_status).label}
                               </span>
                             </div>
                           </div>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </motion.div>
@@ -687,28 +758,32 @@ export function SlotFileReviewCard({ slot, onReviewUpdate }: SlotFileReviewCardP
       <AnimatePresence>
         {lightboxImage && (
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={lightboxImage.name}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
             onClick={() => setLightboxImage(null)}
           >
             <button
               type="button"
               onClick={() => setLightboxImage(null)}
+              aria-label="閉じる"
               className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
             >
-              <X className="w-6 h-6 text-white" />
+              <X className="w-6 h-6 text-white" aria-hidden="true" />
             </button>
             <div className="absolute top-4 left-4 text-white text-sm font-light truncate max-w-[60%]">
               {lightboxImage.name}
             </div>
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.15 }}
+              initial={shouldReduceMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
+              animate={shouldReduceMotion ? { opacity: 1 } : { scale: 1, opacity: 1 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
               className="relative max-w-[90vw] max-h-[85vh]"
               onClick={(e) => e.stopPropagation()}
             >

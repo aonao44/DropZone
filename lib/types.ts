@@ -118,3 +118,17 @@ export interface SlotInput {
 
 // テンプレートキー
 export type SlotTemplateKey = 'LP' | 'BANNER' | 'CUSTOM';
+
+// ツーペイン仕分けUI用のファイル型
+export interface FileWithId extends File {
+  id: string; // UUIDで一意性確保
+  uploadProgress?: number; // 0-100のアップロード進捗
+  uploadedUrl?: string; // アップロード完了後のURL
+}
+
+// FileWithIdを生成するヘルパー関数
+export function createFileWithId(file: File): FileWithId {
+  return Object.assign(file, {
+    id: crypto.randomUUID(),
+  });
+}

@@ -11,6 +11,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { DarkLayout } from "@/components/dark-layout";
+import { getPlanLimits } from "@/lib/plan-limits";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Project = {
   id: string;
@@ -34,26 +45,31 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
   const { toast } = useToast();
   const router = useRouter();
   const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; title: string } | null>(null);
 
-  // プラン別の制限
-  const MAX_PROJECTS = hasPremiumAccess ? 20 : 3;
-  const MAX_FILES_PER_PROJECT = hasPremiumAccess ? 50 : 10;
+  // プラン別の制限（lib/plan-limits.ts に一元化）
+  const { maxProjects: MAX_PROJECTS, maxFilesPerProject: MAX_FILES_PER_PROJECT } =
+    getPlanLimits(hasPremiumAccess);
 
-  const handleCopyFormUrl = (slug: string) => {
+  const handleCopyFormUrl = async (slug: string) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
     const url = `${baseUrl}/project/${slug}/submit`;
-    navigator.clipboard.writeText(url);
-    toast({
-      title: "URLをコピーしました",
-      description: "提出フォームのURLがクリップボードにコピーされました",
-    });
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "URLをコピーしました",
+        description: "提出フォームのURLがクリップボードにコピーされました",
+      });
+    } catch {
+      toast({
+        title: "コピーできませんでした",
+        description: `お手数ですが手動でコピーしてください: ${url}`,
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleDeleteProject = async (projectId: string, projectTitle: string) => {
-    if (!confirm(`プロジェクト「${projectTitle}」を削除してもよろしいですか?\nこの操作は取り消せません。`)) {
-      return;
-    }
-
+  const handleDeleteProject = async (projectId: string) => {
     setDeletingProjectId(projectId);
 
     try {
@@ -123,15 +139,11 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
           </div>
 
           <div className="flex items-center gap-4">
-            {/* 🚨 一時的に変更: お試し期間用のメッセージを表示 */}
-            <Button variant="outline" className="text-base cursor-default hover:bg-transparent">
-              🎉 お試し期間実施中！
-            </Button>
             <Button
               onClick={() => router.push("/dashboard/new")}
               className="bg-emerald-600 hover:bg-emerald-700 text-white text-base"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
               新規プロジェクト
             </Button>
             <UserButton
@@ -159,7 +171,7 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
           {projects.length === 0 ? (
             <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl sm:rounded-3xl p-8 sm:p-10 lg:p-12 text-center backdrop-blur-sm">
               <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 mx-auto bg-slate-700/30 rounded-full flex items-center justify-center mb-6">
-                <Inbox className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-slate-400" />
+                <Inbox className="h-10 w-10 sm:h-12 sm:w-12 lg:h-14 lg:w-14 text-slate-400" aria-hidden="true" />
               </div>
               <h3 className="text-2xl sm:text-3xl font-light mb-3 text-slate-100">
                 まだプロジェクトがありません
@@ -234,13 +246,13 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
                       </Link>
                     </Button>
                     <Button
-                      onClick={() => handleDeleteProject(project.id, project.title)}
+                      onClick={() => setConfirmDelete({ id: project.id, title: project.title })}
                       variant="outline"
                       disabled={deletingProjectId === project.id}
                       className="w-full border-red-600/50 text-red-400 hover:bg-red-900/20 hover:text-red-300 font-light px-3 py-2 rounded-lg transition-all duration-200 text-xs sm:text-sm"
                     >
-                      <Trash2 className="mr-1.5 h-3 w-3 sm:h-4 sm:w-4" />
-                      {deletingProjectId === project.id ? "削除中..." : "削除"}
+                      <Trash2 className="mr-1.5 h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
+                      {deletingProjectId === project.id ? "削除中…" : "削除"}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -249,6 +261,39 @@ export function DashboardClient({ projects, hasPremiumAccess }: DashboardClientP
           )}
         </div>
       </main>
+
+      {/* プロジェクト削除の確認ダイアログ */}
+      <AlertDialog
+        open={confirmDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirmDelete(null);
+        }}
+      >
+        <AlertDialogContent className="bg-slate-800 border-slate-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-slate-50 font-light">
+              「{confirmDelete?.title}」を削除しますか？
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              提出されたファイルの記録もすべて削除されます。この操作は取り消せません。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-slate-600 bg-slate-700/30 text-slate-200 hover:bg-slate-600/50 hover:text-slate-100">
+              キャンセル
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmDelete) handleDeleteProject(confirmDelete.id);
+                setConfirmDelete(null);
+              }}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              削除する
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DarkLayout>
   );
 }

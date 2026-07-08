@@ -66,21 +66,17 @@ export async function POST(request: Request) {
     }
 
     // 2. スロット作成
+    // customSlots（画面で編集した最終形）があればそれを正とし、
+    // 無い場合のみテンプレートのデフォルトを使う
     let slotsToCreate: SlotInput[] = [];
 
-    if (body.template) {
-      // テンプレートからスロットを取得
-      slotsToCreate = getSlotsFromTemplate(body.template);
-    }
-
-    // カスタムスロットを追加
     if (body.customSlots && body.customSlots.length > 0) {
-      const baseOrder = slotsToCreate.length;
-      const customSlotsWithOrder = body.customSlots.map((slot, index) => ({
+      slotsToCreate = body.customSlots.map((slot, index) => ({
         ...slot,
-        sort_order: slot.sort_order ?? baseOrder + index,
+        sort_order: slot.sort_order ?? index,
       }));
-      slotsToCreate = [...slotsToCreate, ...customSlotsWithOrder];
+    } else if (body.template) {
+      slotsToCreate = getSlotsFromTemplate(body.template);
     }
 
     // テンプレートもカスタムスロットもない場合はデフォルトスロットを追加
